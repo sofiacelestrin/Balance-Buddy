@@ -1,17 +1,17 @@
-**Balance**
+Balance
 - As a player, I want to be able to balance my productivity tasks and my self-care tasks in the form of a game. 
 
-**Task Logging**
+Task Logging
 - As a player, I want to be able to log my tasks on the balance buddy app so that I can be better organized.
 - As a player, I want to be able to mark my tasks as completed which should improve the overall wellbeing of my virtual character.
 - As a player, I want to be able to categorize a task with an item of the welfare categories. For example, If I log the task “study for math quiz”, I want to attach that task to the intelligence category.
 - As a player, I want to be rewarded for completing tasks in a balanced way with achievements in the game.
 
-**Accountability**                             
+Accountability                            
 - As a player, I want to be able to see a reminder that I need to complete a task so that I can be held responsible for the work I need to complete.
 - As a player, I want the game to provide rewards in proportion to how balanced my completed tasks are.
 
-**Feature Categories**
+Feature Categories
 
-**Authentication**
+Authentication
 - As a user, I want to be able to make an account with Balance Buddy so that all of my tasks are only visible to me and so that I can keep track of them.
