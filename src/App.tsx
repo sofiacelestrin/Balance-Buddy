@@ -1,4 +1,5 @@
 import "./App.css";
+import "./index.css";
 
 import {
   createBrowserRouter,
@@ -16,7 +17,6 @@ const router = createBrowserRouter(
       <Route path="/" element={<Login />} />
       <Route path="new-account" element={<Registration />} />
       <Route path="dashboard" element={<Dashboard />} />
-      
     </>,
   ),
 );
