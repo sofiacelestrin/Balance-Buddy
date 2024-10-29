@@ -1,36 +1,33 @@
-import { supabase } from "@supabase/auth-ui-shared";
+import { supabase } from "../supabase/supabase";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   async function signInWithEmail(
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) {
     e.preventDefault();
-    console.log("hello");
+    console.log("Attempting login...");
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
 
-    console.log(data);
-    console.log(error);
+    if (error) {
+      console.error("Login failed:", error.message);
+      setErrorMessage("Incorrect email or password. Please try again.");
+    } else {
+      console.log("Login successful:", data);
+      setErrorMessage("");
+      navigate("/dashboard"); // Redirect on successful login
+    }
   }
-
-  // This function allows Dashboard page to be accessed when login button is clicked regardless of user being logged in. This is done for testing purposes
-  // until we get login functionality to work
-  function handleLoginClick(
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ) {
-    e.preventDefault();
-    navigate('/dashboard');
-  }
-
 
   return (
     <div>
@@ -50,16 +47,16 @@ function Login() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit" onClick={(e) => handleLoginClick(e)}>
-          Login 
+        <button type="submit" onClick={signInWithEmail}>
+          Login
         </button>
       </form>
+      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
       <p>
-        Dont't have an account? <Link to="new-account">Click here</Link>
+        Don't have an account? <Link to="new-account">Click here</Link>
       </p>
     </div>
   );
 }
-
 
 export default Login;
