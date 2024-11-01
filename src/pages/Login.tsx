@@ -54,7 +54,7 @@ function Login() {
       <Link to="/dashboard">To Dashboard</Link>
       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
       <p>
-        Don't have an account? <Link to="new-account">Click here</Link>
+        Don't have an account? <Link to="/new-account">Click here</Link>
       </p>
     </div>
   );

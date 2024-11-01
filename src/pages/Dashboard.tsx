@@ -3,15 +3,11 @@ import { useEffect, useState } from "react";
 
 import TodoList from "./TodoList";
 import { Link } from "react-router-dom";
+import { useSession } from "../contexts/SessionContext";
 
 function Dashboard() {
-  useEffect(function () {
-    async function getUser() {
-      console.log(await supabase.auth.getUser());
-    }
-
-    getUser();
-  }, []);
+  //If you need the current session, use the useSession hook
+  const { session } = useSession();
 
   async function signOutUser() {
     const { error } = await supabase.auth.signOut();
@@ -21,6 +17,7 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="mb-6 text-4xl font-bold">Dashboard</h1>
+      <h1>Welcome {session?.user.email}</h1>
       <button className="bg-red-400 p-4 text-white" onClick={signOutUser}>
         LOG OUT
       </button>

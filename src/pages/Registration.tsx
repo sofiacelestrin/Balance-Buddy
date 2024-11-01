@@ -1,5 +1,6 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabase";
-import { useState } from "react";
 
 function Registration() {
   const [email, setEmail] = useState("");
@@ -8,6 +9,8 @@ function Registration() {
   const [fullName, setFullName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [countdown, setCountdown] = useState(5);
+  const navigate = useNavigate();
 
   async function signUpNewUser(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -20,16 +23,13 @@ function Registration() {
       return;
     }
 
-    // Create new user in Supabase Auth
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          fullName,
-        },
+    // Create new user in auth.users
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp(
+      {
+        email,
+        password,
       },
-    });
+    );
 
     if (signUpError) {
       console.error("Error signing up:", signUpError.message);
@@ -37,27 +37,43 @@ function Registration() {
       return;
     }
 
-    // Insert user data into users table
+    // If account creation is successful, then create an entry in the public.users table
+    //By default, the user object should be truthy
     const { user } = signUpData;
-    if (user) {
-      const { data: userData, error: userInsertError } = await supabase
-        .from("users")
-        .insert([
-          {
-            id: user.id,
-            full_name: fullName,
-          },
-        ]);
 
-      if (userInsertError) {
-        console.error("Error inserting user data:", userInsertError.message);
-        setErrorMessage("Account created, but additional data failed to save.");
-      } else {
-        console.log("User registered and additional data saved successfully:", userData);
-        setSuccessMessage("Account created! Please check your email to confirm your account.");
-      }
+    const { data: userData, error: userInsertError } = await supabase
+      .from("users")
+      .insert([
+        {
+          id: user?.id,
+          full_name: fullName,
+        },
+      ]);
+
+    if (userInsertError) {
+      console.error("Error inserting user data:", userInsertError.message);
+      setErrorMessage("Account created, but additional data failed to save.");
+    } else {
+      console.log(
+        "User registered and additional data saved successfully:",
+        userData,
+      );
+      setSuccessMessage("Account created!");
     }
   }
+
+  useEffect(() => {
+    if (successMessage === "") return;
+    const id = setInterval(() => {
+      setCountdown((count) => count - 1);
+
+      if (countdown - 1 <= 0) {
+        navigate("/dashboard");
+      }
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [successMessage, countdown, navigate]);
 
   return (
     <div>
@@ -93,7 +109,11 @@ function Registration() {
         />
         <button type="submit">Create Account</button>
         {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-        {successMessage && <p style={{ color: "green" }}>{successMessage}</p>}
+        {successMessage && (
+          <p style={{ color: "green" }}>
+            {successMessage} Directing you to home page in {countdown} seconds
+          </p>
+        )}
       </form>
     </div>
   );
