@@ -9,7 +9,7 @@ function Login() {
   const navigate = useNavigate();
 
   async function signInWithEmail(
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ) {
     e.preventDefault();
     console.log("Attempting login...");
@@ -23,7 +23,7 @@ function Login() {
       console.error("Login failed:", error.message);
       setErrorMessage("Incorrect email or password. Please try again.");
     } else {
-      console.log("Login successful:", data);
+      console.log("Login successful:");
       setErrorMessage("");
       navigate("/dashboard"); // Redirect on successful login
     }
@@ -51,7 +51,8 @@ function Login() {
           Login
         </button>
       </form>
-      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+      <Link to="/dashboard">To Dashboard</Link>
+      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
       <p>
         Don't have an account? <Link to="new-account">Click here</Link>
       </p>
