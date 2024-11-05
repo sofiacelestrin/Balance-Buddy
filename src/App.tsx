@@ -26,6 +26,7 @@ const router = createBrowserRouter(
       <Route index element={<Navigate to="login" replace />} />
       <Route path="login" element={<Login />} />
       <Route path="new-account" element={<Registration />} />
+
       <Route element={<PrivateRoutes />}>
         <Route path="dashboard" element={<Dashboard />} />
       </Route>

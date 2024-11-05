@@ -110,3 +110,5 @@ Here’s a simpler, rule-based system for earning coins based on task complexity
 3. Penalty for Imbalance: When a user completes a task with one or more meters significantly lower than others (20% or more difference), the coin reward decreases by half. This incentivizes balancing neglected areas before continuing.
 
 This system rewards task completion based on effort while promoting well-being balance.
+
+Below are the todos for this week and the following week:
