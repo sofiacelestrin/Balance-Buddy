@@ -68,7 +68,7 @@ function Registration() {
       setCountdown((count) => count - 1);
 
       if (countdown - 1 <= 0) {
-        navigate("/dashboard");
+        navigate("/create-character");
       }
     }, 1000);
 
@@ -111,7 +111,8 @@ function Registration() {
         {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
         {successMessage && (
           <p style={{ color: "green" }}>
-            {successMessage} Directing you to home page in {countdown} seconds
+            {successMessage}. Directing you to character creation in {countdown}{" "}
+            seconds
           </p>
         )}
       </form>

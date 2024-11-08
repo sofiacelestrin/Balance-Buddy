@@ -15,7 +15,7 @@ function SessionProvider({ children }: { children: React.ReactNode }) {
   // Effect that listens to Supabase auth event changes. We only handle "SIGNED_OUT" events
   // or events where the session object is truthy.
   // On initial page load or reload, `isLoading` is set to true, giving Supabase time to check for
-  // an existing session before the app redirects. Once the session is determined, `isLoading` is set to false.
+  // an existing session before the app redirects to the intended page according to PrivateRoutes component. Once the session is determined, `isLoading` is set to false.
   useEffect(function () {
     const {
       data: { subscription },
