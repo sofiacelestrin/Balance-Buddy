@@ -16,14 +16,26 @@ function Dashboard() {
   let userAvatar: Result;
   if (!isLoadingAvatar) {
     userAvatar = createAvatar(avataaars, {
-      seed: "Jocelyn",
       accessories: [`${avatarOptions.accessories}`],
       //exclude the # at the beginning
       backgroundColor: [avatarOptions.backgroundColor.slice(1)],
       accessoriesProbability: avatarOptions.accessories ? 100 : 0,
       accessoriesColor: [avatarOptions.accessoriesColor.slice(1)],
       clothesColor: [avatarOptions.clothesColor.slice(1)],
-      clothing: [avatarOptions.clothing],
+      clothing: [`${avatarOptions.clothing}`],
+      clothingGraphic: [`${avatarOptions.clothingGraphic}`],
+      eyebrows: [`${avatarOptions.eyebrows}`],
+      eyes: [`${avatarOptions.eyes}`],
+      facialHair: [`${avatarOptions.facialHair}`],
+      facialHairProbability: avatarOptions.facialHair ? 100 : 0,
+      facialHairColor: [`${avatarOptions.facialHairColor}`],
+      hairColor: [avatarOptions.hairColor.slice(1)],
+      hatColor: [avatarOptions.hatColor.slice(1)],
+      mouth: [`${avatarOptions.mouth}`],
+      nose: [`${avatarOptions.nose}`],
+      skinColor: [avatarOptions.skinColor.slice(1)],
+      top: [`${avatarOptions.top}`],
+      topProbability: avatarOptions.top ? 100 : 0,
     });
   }
 
