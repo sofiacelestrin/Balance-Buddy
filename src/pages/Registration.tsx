@@ -38,7 +38,7 @@ function Registration() {
     }
 
     // If account creation is successful, then create an entry in the public.users table
-    //By default, the user object should be truthy
+    // By default, the user object should be truthy
     const { user } = signUpData;
 
     const { data: userData, error: userInsertError } = await supabase

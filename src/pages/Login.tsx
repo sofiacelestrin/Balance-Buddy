@@ -13,19 +13,36 @@ function Login() {
   ) {
     e.preventDefault();
     console.log("Attempting login...");
-
-    const { data, error } = await supabase.auth.signInWithPassword({
+  
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
-
-    if (error) {
-      console.error("Login failed:", error.message);
+  
+    if (authError) {
+      console.error("Login failed:", authError.message);
       setErrorMessage("Incorrect email or password. Please try again.");
     } else {
-      console.log("Login successful:");
+      console.log("Login successful:", authData);
       setErrorMessage("");
-      navigate("/dashboard"); // Redirect on successful login
+  
+      // Check avatar_name in supabase
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("avatar_name")
+        .eq("id", authData.user?.id)
+        .single();
+  
+      if (userError) {
+        console.error("Failed to retrieve user data:", userError.message);
+        setErrorMessage("An error occurred. Please try again.");
+      } else if (!userData?.avatar_name) {
+        // Redirect to character creation page if avatar_name is null
+        navigate("/create-character");
+      } else {
+        // Redirect to dashboard if avatar_name exists
+        navigate("/dashboard");
+      }
     }
   }
 
