@@ -75,17 +75,42 @@ function CharacterCreation() {
   return (
     <div className="mx-auto h-screen w-[700px]">
       <div className="flex flex-col items-center">
-        <h1>Character Creation</h1>
+
+        {/* Character Creation Title */}
+        <h1 className="text-3xl font-semibold mb-6 font-mono">Character Creation</h1>
+
         <figure className="flex items-center">
-          <button onClick={() => handleAvatarChange("left")}>{"<"}</button>
+
+          {/* Left Arrow */} 
+          <button
+            onClick={() => handleAvatarChange("left")}
+            className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            <div
+              className="w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-b-8 border-b-gray-800"
+              style={{ transform: 'rotate(270deg)' }}
+            />
+          </button>
+
           <img src={avatar.toDataUri()} alt="avatar" className="w-72" />
-          <button onClick={() => handleAvatarChange("right")}>{">"}</button>
+
+          {/* Right Arrow */} 
+          <button
+            onClick={() => handleAvatarChange("left")}
+            className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            <div
+              className="w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-b-8 border-b-gray-800"
+              style={{ transform: 'rotate(90deg)' }}
+            />
+          </button>
         </figure>
 
+        {/* Avatar Name Input */}
         <input
           type="text"
-          placeholder="avatar name"
-          className="bg-blue-100"
+          placeholder="Enter Avatar Name"
+          className="bg-blue-100 px-4 py-2 rounded-lg border-2 border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
           value={avatarName}
           onChange={(e) => setAvatarName(e.target.value)}
         />
@@ -94,7 +119,13 @@ function CharacterCreation() {
           <div className="text-red-500 mt-2">{errorMessage}</div>
         )}
 
-        <button onClick={handleSaveAvatar}>Save Avatar</button>
+        {/* Save Avatar Button */}
+        <button
+          onClick={handleSaveAvatar}
+          className="px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition duration-200 mt-4 font-mono"
+        >
+          Save Avatar
+        </button>
       </div>
     </div>
   );
