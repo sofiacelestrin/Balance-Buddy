@@ -13,6 +13,7 @@ import Registration from "./pages/Registration";
 import Dashboard from "./pages/Dashboard";
 import { SessionProvider, useSession } from "./contexts/SessionContext";
 import CharacterCreation from "./pages/CharacterCreation";
+import AddTask from "./pages/AddTask";
 
 function PrivateRoutes() {
   const { session, isLoading } = useSession();
@@ -31,6 +32,7 @@ const router = createBrowserRouter(
       <Route element={<PrivateRoutes />}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="create-character" element={<CharacterCreation />} />
+        <Route path="/add-task" element={<AddTask />} />
       </Route>
     </>,
   ),

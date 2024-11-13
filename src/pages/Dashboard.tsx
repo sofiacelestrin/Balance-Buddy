@@ -4,40 +4,13 @@ import { useSession } from "../contexts/SessionContext";
 import { supabase } from "../supabase/supabase";
 import { getCustomizationOptionsOwnership } from "../supabase/userCustomizationOwnershipService";
 import TodoList from "./TodoList";
-import { createAvatar, Result } from "@dicebear/core";
-import { avataaars } from "@dicebear/collection";
+import Buddy from "./Buddy"; // Import Buddy component
 
 function Dashboard() {
   //If you need the current session, use the useSession hook
   const { session } = useSession();
   const [avatarOptions, setAvatarOptions] = useState({});
   const [isLoadingAvatar, setIsLoadingAvatar] = useState(true);
-
-  let userAvatar: Result;
-  if (!isLoadingAvatar) {
-    userAvatar = createAvatar(avataaars, {
-      accessories: [`${avatarOptions.accessories}`],
-      //exclude the # at the beginning
-      backgroundColor: [avatarOptions.backgroundColor.slice(1)],
-      accessoriesProbability: avatarOptions.accessories ? 100 : 0,
-      accessoriesColor: [avatarOptions.accessoriesColor.slice(1)],
-      clothesColor: [avatarOptions.clothesColor.slice(1)],
-      clothing: [`${avatarOptions.clothing}`],
-      clothingGraphic: [`${avatarOptions.clothingGraphic}`],
-      eyebrows: [`${avatarOptions.eyebrows}`],
-      eyes: [`${avatarOptions.eyes}`],
-      facialHair: [`${avatarOptions.facialHair}`],
-      facialHairProbability: avatarOptions.facialHair ? 100 : 0,
-      facialHairColor: [`${avatarOptions.facialHairColor}`],
-      hairColor: [avatarOptions.hairColor.slice(1)],
-      hatColor: [avatarOptions.hatColor.slice(1)],
-      mouth: [`${avatarOptions.mouth}`],
-      nose: [`${avatarOptions.nose}`],
-      skinColor: [avatarOptions.skinColor.slice(1)],
-      top: [`${avatarOptions.top}`],
-      topProbability: avatarOptions.top ? 100 : 0,
-    });
-  }
 
   async function signOutUser() {
     const { error } = await supabase.auth.signOut();
@@ -76,10 +49,10 @@ function Dashboard() {
       <button className="bg-red-400 p-4 text-white" onClick={signOutUser}>
         LOG OUT
       </button>
-      {!isLoadingAvatar && (
-        <img src={userAvatar.toDataUri()} alt="avatar" className="w-28" />
-      )}
-      <Link to="/login">Login Page</Link>
+
+      {/* Pass avatarOptions to Buddy component */}
+      <Buddy avatarOptions={avatarOptions} isLoadingAvatar={isLoadingAvatar} />
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* TodoList component */}
         <div className="col-span-1">
@@ -90,12 +63,6 @@ function Dashboard() {
         <div className="col-span-1 rounded bg-white p-6 shadow-lg">
           <h2 className="mb-4 text-2xl font-bold">Messages</h2>
           <p>No new messages.</p>
-        </div>
-
-        {/* Character stats - WIP */}
-        <div className="col-span-1 rounded bg-white p-6 shadow-lg">
-          <h2 className="mb-4 text-2xl font-bold">Stats</h2>
-          <p>Current character stats will be displayed here.</p>
         </div>
       </div>
     </div>
