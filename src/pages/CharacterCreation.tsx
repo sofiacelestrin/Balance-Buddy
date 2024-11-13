@@ -56,7 +56,7 @@ function CharacterCreation() {
       setErrorMessage("Avatar name cannot be empty");
       return;
     }
-  
+
     // Save avatar if name is nonempty
     saveAvatar(avatar.toJson().extra, session?.user.id as string, avatarName)
       .then(() => {
@@ -75,33 +75,33 @@ function CharacterCreation() {
   return (
     <div className="mx-auto h-screen w-[700px]">
       <div className="flex flex-col items-center">
-
         {/* Character Creation Title */}
-        <h1 className="text-3xl font-semibold mb-6 font-mono">Character Creation</h1>
+        <h1 className="mb-6 font-mono text-3xl font-semibold">
+          Character Creation
+        </h1>
 
         <figure className="flex items-center">
-
-          {/* Left Arrow */} 
+          {/* Left Arrow */}
           <button
             onClick={() => handleAvatarChange("left")}
-            className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             <div
-              className="w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-b-8 border-b-gray-800"
-              style={{ transform: 'rotate(270deg)' }}
+              className="h-0 w-0 border-b-8 border-l-8 border-r-8 border-b-gray-800 border-l-transparent border-r-transparent"
+              style={{ transform: "rotate(270deg)" }}
             />
           </button>
 
           <img src={avatar.toDataUri()} alt="avatar" className="w-72" />
 
-          {/* Right Arrow */} 
+          {/* Right Arrow */}
           <button
-            onClick={() => handleAvatarChange("left")}
-            className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            onClick={() => handleAvatarChange("right")}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             <div
-              className="w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-b-8 border-b-gray-800"
-              style={{ transform: 'rotate(90deg)' }}
+              className="h-0 w-0 border-b-8 border-l-8 border-r-8 border-b-gray-800 border-l-transparent border-r-transparent"
+              style={{ transform: "rotate(90deg)" }}
             />
           </button>
         </figure>
@@ -110,19 +110,19 @@ function CharacterCreation() {
         <input
           type="text"
           placeholder="Enter Avatar Name"
-          className="bg-blue-100 px-4 py-2 rounded-lg border-2 border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+          className="rounded-lg border-2 border-blue-300 bg-blue-100 px-4 py-2 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={avatarName}
           onChange={(e) => setAvatarName(e.target.value)}
         />
 
         {errorMessage && (
-          <div className="text-red-500 mt-2">{errorMessage}</div>
+          <div className="mt-2 text-red-500">{errorMessage}</div>
         )}
 
         {/* Save Avatar Button */}
         <button
           onClick={handleSaveAvatar}
-          className="px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition duration-200 mt-4 font-mono"
+          className="mt-4 rounded-lg bg-green-500 px-6 py-3 font-mono font-semibold text-white transition duration-200 hover:bg-green-600"
         >
           Save Avatar
         </button>

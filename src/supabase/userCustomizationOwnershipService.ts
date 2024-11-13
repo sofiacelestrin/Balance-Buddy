@@ -14,6 +14,7 @@ export async function saveAvatar(
   //Step 2: Create a lookup map for faster access by category and option_value
   const customizationOptionsMap = customizationOptions.reduce((map, option) => {
     const key = `${option.category}_${option.option_value}`;
+
     map.set(key, option.id);
     return map;
   }, new Map<string, number>());
@@ -21,6 +22,7 @@ export async function saveAvatar(
   // Step 3: Build the insertData array by looking up IDs from the map
   for (const [category, value] of Object.entries(avatarConfig)) {
     //Find the customizationOption tuple that matches the Record from the avatarConfig object. For example, if in the avatarConfig object, the Record is backgroundColor="e5e7eb", we want the tuple with id=46
+
     const result = customizationOptionsMap.get(`${category}_${value}`);
 
     if (result) {
