@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  /* global.css or your main stylesheet */
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    border-radius: 20px;
+    width: 500px;
+    background-color: rgba(255, 255, 255, 0); /* Thumb color */
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 33, 33, 0.5); /* Thumb color */
+  }
+}

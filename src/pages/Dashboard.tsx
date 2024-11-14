@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSession } from "../contexts/SessionContext";
 import { supabase } from "../supabase/supabase";
@@ -8,67 +8,58 @@ import { createAvatar, Result } from "@dicebear/core";
 import { avataaars } from "@dicebear/collection";
 import HamburgerBars from "../components/icons/HamburgerBars";
 import HomeSidebar from "../components/HomeSidebar";
+import { useQuery } from "@tanstack/react-query";
 
 function Dashboard() {
   //If you need the current session, use the useSession hook
   const { session } = useSession();
-  const [avatarOptions, setAvatarOptions] = useState({});
-  const [isLoadingAvatar, setIsLoadingAvatar] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  let userAvatar: Result;
-  if (!isLoadingAvatar) {
-    userAvatar = createAvatar(avataaars, {
-      accessories: [`${avatarOptions.accessories}`],
+  const { isPending: isLoadingAvatar, data } = useQuery({
+    queryKey: ["user_avatar"],
+    queryFn: () => getCustomizationOptionsOwnership(session?.user.id as string),
+  });
+
+  const userAvatar = useMemo(() => {
+    if (isLoadingAvatar) return null;
+    const options = data?.reduce(
+      (avatarOptions, option) => {
+        const category = option?.category as string;
+        const optionValue = option?.option_value as string;
+        avatarOptions[category] = optionValue;
+        return avatarOptions;
+      },
+      {} as Record<string, string>,
+    );
+
+    return createAvatar(avataaars, {
+      accessories: [`${options.accessories}`],
       //exclude the # at the beginning
-      backgroundColor: [avatarOptions.backgroundColor.slice(1)],
-      accessoriesProbability: avatarOptions.accessories ? 100 : 0,
-      accessoriesColor: [avatarOptions.accessoriesColor.slice(1)],
-      clothesColor: [avatarOptions.clothesColor.slice(1)],
-      clothing: [`${avatarOptions.clothing}`],
-      clothingGraphic: [`${avatarOptions.clothingGraphic}`],
-      eyebrows: [`${avatarOptions.eyebrows}`],
-      eyes: [`${avatarOptions.eyes}`],
-      facialHair: [`${avatarOptions.facialHair}`],
-      facialHairProbability: avatarOptions.facialHair ? 100 : 0,
-      facialHairColor: [`${avatarOptions.facialHairColor.slice(1)}`],
-      hairColor: [avatarOptions.hairColor.slice(1)],
-      hatColor: [avatarOptions.hatColor.slice(1)],
-      mouth: [`${avatarOptions.mouth}`],
-      nose: [`${avatarOptions.nose}`],
-      skinColor: [avatarOptions.skinColor.slice(1)],
-      top: [`${avatarOptions.top}`],
-      topProbability: avatarOptions.top ? 100 : 0,
+      backgroundColor: [options.backgroundColor.slice(1)],
+      accessoriesProbability: options.accessories ? 100 : 0,
+      accessoriesColor: [options.accessoriesColor.slice(1)],
+      clothesColor: [options.clothesColor.slice(1)],
+      clothing: [`${options.clothing}`],
+      clothingGraphic: [`${options.clothingGraphic}`],
+      eyebrows: [`${options.eyebrows}`],
+      eyes: [`${options.eyes}`],
+      facialHair: [`${options.facialHair}`],
+      facialHairProbability: options.facialHair ? 100 : 0,
+      facialHairColor: [`${options.facialHairColor.slice(1)}`],
+      hairColor: [options.hairColor.slice(1)],
+      hatColor: [options.hatColor.slice(1)],
+      mouth: [`${options.mouth}`],
+      nose: [`${options.nose}`],
+      skinColor: [options.skinColor.slice(1)],
+      top: [`${options.top}`],
+      topProbability: options.top ? 100 : 0,
     });
-  }
+  }, [data, isLoadingAvatar]);
+
+  if (isLoadingAvatar) return <p>Loading Avatar</p>;
 
   const handleSidebarToggle = () => setIsSidebarOpen(true);
   const handleSidebarClose = () => setIsSidebarOpen(false);
-
-  useEffect(() => {
-    async function getAvatarStyleSettings() {
-      setIsLoadingAvatar(true);
-      const customizationOptions = await getCustomizationOptionsOwnership(
-        session?.user.id as string,
-      );
-
-      if (!customizationOptions) return;
-
-      const options = customizationOptions.reduce(
-        (avatarOptions, option) => {
-          const category = option?.category as string;
-          const optionValue = option?.option_value as string;
-          avatarOptions[category] = optionValue;
-          return avatarOptions;
-        },
-        {} as Record<string, string>,
-      );
-
-      setAvatarOptions(options);
-      setIsLoadingAvatar(false);
-    }
-    getAvatarStyleSettings();
-  }, [session?.user.id]);
 
   return (
     // Page container

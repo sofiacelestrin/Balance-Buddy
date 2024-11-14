@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { getAllCustomizationOptions } from "./customizationOptionsService";
 import { supabase } from "./supabase";
 import { TablesInsert } from "./supabaseTypes";
@@ -9,6 +10,7 @@ export async function saveAvatar(
 ) {
   const insertData: TablesInsert<"user_customization_ownership">[] = [];
   //Step 1: first fetch all customization options
+
   const customizationOptions = await getAllCustomizationOptions();
 
   //Step 2: Create a lookup map for faster access by category and option_value
