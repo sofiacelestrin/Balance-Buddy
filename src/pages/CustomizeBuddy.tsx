@@ -11,8 +11,8 @@ function CustomizeBuddy() {
   //If you need the current session, use the useSession hook
   const { session } = useSession();
   const [selectedCategory, setSelectedCategory] = useState("backgroundColor");
-  const [avatarOptions, setAvatarOptions] = useState<avatarOptions>(
-    {} as avatarOptions,
+  const [avatarOptions, setAvatarOptions] = useState<avatarOptions | null>(
+    null,
   );
 
   //fetch the user's current avatar options. This fetch request only happens once
@@ -22,6 +22,7 @@ function CustomizeBuddy() {
       const options = await getCustomizationOptionsOwnership(
         session?.user.id as string,
       );
+
       //Parse the results that come from supabase into an avatarOptions object that can be passed to the utility function createAvatarFromOptions that creates an avatar
       const parsedOptions: avatarOptions = options?.reduce(
         (optionsObject, option) => {
@@ -46,7 +47,6 @@ function CustomizeBuddy() {
         const options =
           await getCustomizationOptionsByCategory(selectedCategory);
 
-        console.log(options);
         return options;
       },
       staleTime: Infinity,
@@ -62,7 +62,7 @@ function CustomizeBuddy() {
 
   //The avatarOptions object will be set once from the data originating from supabase and from thereafter, on the client side
   const userAvatar = useMemo(() => {
-    if (Object.keys(avatarOptions).length === 0) return null;
+    if (!avatarOptions) return null;
 
     return createAvatarFromOptions(avatarOptions);
   }, [avatarOptions]);
