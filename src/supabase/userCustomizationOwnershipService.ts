@@ -59,8 +59,7 @@ export async function getCustomizationOptionsOwnership(userId: string) {
     .select(
       `
       customization_options (
-        category,
-        option_value
+        *
       )
     `,
     )

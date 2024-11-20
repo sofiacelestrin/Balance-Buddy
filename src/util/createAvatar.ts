@@ -4,6 +4,7 @@ import { createAvatar } from "@dicebear/core";
 export type avatarOptions = {
   accessories?: string;
   backgroundColor: string;
+
   accessoriesColor?: string;
   clothesColor: string;
   clothing: string;
