@@ -7,10 +7,7 @@ function AddTask() {
   const location = useLocation();
   const task = location.state || {};
 
-  const [taskTitle, setTaskTitle] = useState(task.description || "");
-  const [taskDescription, setTaskDescription] = useState(
-    task.description || ""
-  );
+  const [taskDescription, setTaskDescription] = useState(task.description || "");
   const [taskCategory, setTaskCategory] = useState(
     task.category || "Happiness"
   );
@@ -93,7 +90,7 @@ function AddTask() {
           due: taskDue,
           complexity: taskComplexity,
           user_id: userId,
-          completed: false
+          completed: false,
         },
       ]);
 
@@ -118,20 +115,6 @@ function AddTask() {
         onSubmit={handleSubmit}
         className="mx-auto w-96 rounded bg-white p-6 shadow-lg"
       >
-        <div className="mb-4">
-          <label htmlFor="title" className="block text-sm font-semibold">
-            Task Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={taskTitle}
-            onChange={(e) => setTaskTitle(e.target.value)}
-            className="w-full rounded border p-2"
-            required
-          />
-        </div>
         <div className="mb-4">
           <label htmlFor="description" className="block text-sm font-semibold">
             Task Description
