@@ -41,17 +41,27 @@ function Dashboard() {
   const handleSidebarToggle = () => setIsSidebarOpen(true);
   const handleSidebarClose = () => setIsSidebarOpen(false);
 
+
+  
+
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    
+   <div className="min-h-screen bg-gray-100 p-8">
+<header className="bg-blue-600 p-4 text-white">
+        <div className="flex items-center">
+          <img
+            src="/src/1logo.svg"
+            alt="Company Logo"
+            className="h-12 w-auto mr-4"
+          />
+          <div className="text-4xl font-bold">Balance Buddy</div>
+        </div>
+      </header>
       <header>
+        
         <h1 className="mb-6 text-4xl font-bold">Dashboard</h1>
         <h2>Welcome, {session?.user.email}</h2>
-        <button className="bg-red-400 p-4 text-white" onClick={signOutUser}>
-          LOG OUT
-        </button>
-        {!isLoadingAvatar && (
-          <img src={userAvatar.toDataUri()} alt="avatar" className="w-28 mt-4" />
-        )}
+
         <button onClick={handleSidebarToggle}>
           <HamburgerBars />
         </button>
@@ -88,7 +98,8 @@ function Dashboard() {
           <p>Current character stats will be displayed here.</p>
         </div>
       </main>
-    </div>
+      </div>
+
   );
 }
 
