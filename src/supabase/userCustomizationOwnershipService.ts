@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { getAllCustomizationOptions } from "./customizationOptionsService";
 import { supabase } from "./supabase";
 import { TablesInsert } from "./supabaseTypes";
@@ -9,11 +10,13 @@ export async function saveAvatar(
 ) {
   const insertData: TablesInsert<"user_customization_ownership">[] = [];
   //Step 1: first fetch all customization options
+
   const customizationOptions = await getAllCustomizationOptions();
 
   //Step 2: Create a lookup map for faster access by category and option_value
   const customizationOptionsMap = customizationOptions.reduce((map, option) => {
     const key = `${option.category}_${option.option_value}`;
+
     map.set(key, option.id);
     return map;
   }, new Map<string, number>());
@@ -21,6 +24,7 @@ export async function saveAvatar(
   // Step 3: Build the insertData array by looking up IDs from the map
   for (const [category, value] of Object.entries(avatarConfig)) {
     //Find the customizationOption tuple that matches the Record from the avatarConfig object. For example, if in the avatarConfig object, the Record is backgroundColor="e5e7eb", we want the tuple with id=46
+
     const result = customizationOptionsMap.get(`${category}_${value}`);
 
     if (result) {
@@ -55,8 +59,7 @@ export async function getCustomizationOptionsOwnership(userId: string) {
     .select(
       `
       customization_options (
-        category,
-        option_value
+        *
       )
     `,
     )
