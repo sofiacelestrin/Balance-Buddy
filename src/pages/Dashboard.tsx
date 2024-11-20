@@ -6,11 +6,18 @@ import { useSession } from "../contexts/SessionContext";
 import { getCustomizationOptionsOwnership } from "../supabase/userCustomizationOwnershipService";
 import createAvatarFromOptions, { avatarOptions } from "../util/createAvatar";
 import TodoList from "./TodoList";
+import Buddy from "./Buddy"; // Import Buddy component
 
 function Dashboard() {
   //If you need the current session, use the useSession hook
   const { session } = useSession();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+
+  async function signOutUser() {
+    const { error } = await supabase.auth.signOut();
+    console.log(error);
+  }
 
   const { isPending: isLoadingAvatar, data: avatarOptions } = useQuery({
     queryKey: ["user_avatar"],
@@ -45,20 +52,32 @@ function Dashboard() {
   const handleSidebarClose = () => setIsSidebarOpen(false);
 
   return (
-    <>
-      <header className="bg-blue-600 p-4 text-white">
-        <div className="flex items-center">
-          <img
-            src="/src/1logo.svg"
-            alt="Company Logo"
-            className="mr-4 h-12 w-auto"
-          />
-          <div className="text-4xl font-bold">Balance Buddy</div>
+
+    <div className="min-h-screen bg-gray-100 p-8">
+      <h1 className="mb-6 text-4xl font-bold">Dashboard</h1>
+      <h1>Welcome {session?.user.email}</h1>
+      <button className="bg-red-400 p-4 text-white" onClick={signOutUser}>
+        LOG OUT
+      </button>
+
+      {/* Pass avatarOptions to Buddy component */}
+      <Buddy avatarOptions={avatarOptions} isLoadingAvatar={isLoadingAvatar} />
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* TodoList component */}
+        <div className="col-span-1">
+          <TodoList />
         </div>
       </header>
       {/* // Page container */}
       <div className="min-h-screen bg-gray-100 p-8">
         {/* Sidebar */}
+
+
+        {/* Messages from character - WIP */}
+        <div className="col-span-1 rounded bg-white p-6 shadow-lg">
+          <h2 className="mb-4 text-2xl font-bold">Messages</h2>
+          <p>No new messages.</p>
 
         <HomeSidebar
           className={isSidebarOpen ? "w-56" : "w-0 overflow-x-hidden"}
@@ -99,6 +118,7 @@ function Dashboard() {
               <p>Current character stats will be displayed here.</p>
             </div>
           </main>
+
         </div>
       </div>
     </>
