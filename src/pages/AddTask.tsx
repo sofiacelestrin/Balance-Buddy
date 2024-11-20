@@ -1,160 +1,191 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { supabase } from "../supabase/supabase";
-import { useLocation, useNavigate } from "react-router-dom"; // Import useNavigate and useLocation
-
-enum Category {
-  Happiness = "happiness",
-  Health = "health",
-  SelfActualization = "self_actualization",
-  Connection = "social_connection",
-}
-
-type Task = {
-  id: number;
-  user_id: string;
-  category: Category;
-  complexity: number;
-  description: string;
-  due: string;
-  completed: boolean;
-};
 
 function AddTask() {
   const location = useLocation();
-  const taskToEdit = location.state?.task;
-  const [task, setTask] = useState<Task | null>(taskToEdit || null);
-  const [description, setDescription] = useState<string>("");
-  const [category, setCategory] = useState<Category>("happiness");
-  const [complexity, setComplexity] = useState<number>(1);
-  const [due, setDue] = useState<string>("");
+  const task = location.state || {};
 
-  const navigate = useNavigate(); // useNavigate hook for navigation
+  const [taskDescription, setTaskDescription] = useState(task.description || "");
+  const [taskCategory, setTaskCategory] = useState(
+    task.category || "Happiness"
+  );
+  const [taskDue, setTaskDue] = useState(
+    task.due ? new Date(task.due).toISOString().split("T")[0] : "" // Default to today's date
+  );
+  const [taskComplexity, setTaskComplexity] = useState(task.complexity || 3);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
+  const categories = [
+    { displayName: "Happiness", value: "happiness" },
+    { displayName: "Self Actualization", value: "self_actualization" },
+    { displayName: "Social Connection", value: "social_connection" },
+    { displayName: "Health", value: "health" },
+  ];
+  const complexities = [1, 2, 3, 4, 5];
+
+  // Fetch the current user's ID from the session
   useEffect(() => {
-    if (taskToEdit) {
-      setDescription(taskToEdit.description);
-      setCategory(taskToEdit.category);
-      setComplexity(taskToEdit.complexity);
-      setDue(taskToEdit.due);
-    }
-  }, [taskToEdit]);
+    async function fetchUserId() {
+      try {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
+        if (sessionError) throw sessionError;
+
+        if (!session) {
+          console.error("User session not found.");
+          setError("User not authenticated.");
+          return;
+        }
+
+        setUserId(session.user.id);
+      } catch (err) {
+        console.error("Error fetching user session:", err);
+        setError("Error fetching user session.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchUserId();
+  }, []);
+
+  // Insert the task into the database
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (loading) {
+      console.log("Waiting for user session...");
+      return;
+    }
+
+    if (!userId) {
+      console.error("User not authenticated");
+      setError("User not authenticated. Please log in.");
+      return;
+    }
+
+    const selectedCategory = categories.find(
+      (cat) => cat.displayName === taskCategory
+    )?.value;
+
+    if (!selectedCategory) {
+      console.error("Invalid category selected.");
+      setError("Invalid category selected.");
+      return;
+    }
+
     try {
-      if (task) {
-        // Editing existing task
-        const { error } = await supabase
-          .from("tasks")
-          .update({ description, category, complexity, due })
-          .eq("id", task.id);
+      const { data, error } = await supabase.from("tasks").insert([
+        {
+          description: taskDescription,
+          category: selectedCategory,
+          due: taskDue,
+          complexity: taskComplexity,
+          user_id: userId,
+          completed: false,
+        },
+      ]);
 
-        if (error) {
-          console.error("Error updating task:", error);
-          return;
-        }
-
-        alert("Task updated successfully!");
-      } else {
-        // Adding new task
-        const { error } = await supabase
-          .from("tasks")
-          .insert([{ description, category, complexity, due }]);
-
-        if (error) {
-          console.error("Error adding task:", error);
-          return;
-        }
-
-        alert("New task added successfully!");
+      if (error) {
+        throw error;
       }
 
-      // Navigate back to the dashboard after task update
-      navigate("/dashboard"); // Change this route if needed
+      console.log("Task added successfully:", data);
+      navigate("/dashboard");
     } catch (err) {
-      console.error("Error:", err);
+      console.error("Error adding task:", err);
+      setError("Error adding task. Please try again.");
     }
   };
 
-  return (
-    <div className="mx-auto max-w-lg rounded bg-white p-6 shadow-lg">
-      <h1 className="mb-4 text-2xl font-bold">
-        {task ? "Edit Task" : "Add New Task"}
-      </h1>
+  if (loading) return <div>Loading...</div>;
 
-      <form onSubmit={handleSubmit}>
+  return (
+    <div className="min-h-screen bg-gray-100 p-8">
+      <h1 className="mb-6 text-4xl font-bold">Add Task</h1>
+      <form
+        onSubmit={handleSubmit}
+        className="mx-auto w-96 rounded bg-white p-6 shadow-lg"
+      >
         <div className="mb-4">
-          <label htmlFor="description" className="block text-sm font-medium">
+          <label htmlFor="description" className="block text-sm font-semibold">
             Task Description
           </label>
-          <input
-            type="text"
+          <textarea
             id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="mt-2 block w-full rounded border px-4 py-2"
+            name="description"
+            value={taskDescription}
+            onChange={(e) => setTaskDescription(e.target.value)}
+            className="w-full rounded border p-2"
             required
           />
         </div>
-
         <div className="mb-4">
-          <label htmlFor="category" className="block text-sm font-medium">
+          <label htmlFor="category" className="block text-sm font-semibold">
             Category
           </label>
           <select
             id="category"
-            value={category}
-            onChange={(e) => setCategory(e.target.value as Category)}
-            className="mt-2 block w-full rounded border px-4 py-2"
-            required
+            name="category"
+            value={taskCategory}
+            onChange={(e) => setTaskCategory(e.target.value)}
+            className="w-full rounded border p-2"
           >
-            <option value={Category.Happiness}>Happiness</option>
-            <option value={Category.Health}>Health</option>
-            <option value={Category.SelfActualization}>
-              Self-Actualization
-            </option>
-            <option value={Category.Connection}>Connection</option>
+            {categories.map((category, index) => (
+              <option key={index} value={category.displayName}>
+                {category.displayName}
+              </option>
+            ))}
           </select>
         </div>
-
         <div className="mb-4">
-          <label htmlFor="complexity" className="block text-sm font-medium">
-            Complexity
-          </label>
-          <input
-            type="number"
-            id="complexity"
-            value={complexity}
-            onChange={(e) => setComplexity(Number(e.target.value))}
-            min="1"
-            max="5"
-            className="mt-2 block w-full rounded border px-4 py-2"
-            required
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="due" className="block text-sm font-medium">
+          <label htmlFor="due" className="block text-sm font-semibold">
             Due Date
           </label>
           <input
             type="date"
             id="due"
-            value={due}
-            onChange={(e) => setDue(e.target.value)}
-            className="mt-2 block w-full rounded border px-4 py-2"
+            name="due"
+            value={taskDue}
+            onChange={(e) => setTaskDue(e.target.value)}
+            className="w-full rounded border p-2"
             required
           />
         </div>
-
+        <div className="mb-4">
+          <label htmlFor="complexity" className="block text-sm font-semibold">
+            Complexity
+          </label>
+          <select
+            id="complexity"
+            name="complexity"
+            value={taskComplexity}
+            onChange={(e) => setTaskComplexity(Number(e.target.value))}
+            className="w-full rounded border p-2"
+          >
+            {complexities.map((complexity, index) => (
+              <option key={index} value={complexity}>
+                {complexity}
+              </option>
+            ))}
+          </select>
+        </div>
         <button
           type="submit"
-          className="w-full rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
+          className="w-full rounded bg-blue-500 py-2 text-white hover:bg-blue-600"
         >
-          {task ? "Update Task" : "Add Task"}
+          Add Task
         </button>
       </form>
+      {error && <p className="mt-4 text-red-500">{error}</p>}
     </div>
   );
 }
