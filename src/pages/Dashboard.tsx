@@ -56,31 +56,46 @@ function Dashboard() {
   const handleSidebarClose = () => setIsSidebarOpen(false);
 
   return (
+    <>
+<header className="bg-blue-600 p-4 text-white">
+  <div className="flex items-center justify-between">
+    {/* Left Section: Logo and Title */}
+    <div className="flex items-center">
+      <img
+        src="/src/1logo.svg"
+        alt="Company Logo"
+        className="mr-4 h-12 w-auto"
+      />
+      <div className="text-4xl font-bold">Balance Buddy</div>
+    </div>
+
+    {/* Right Section: Coin Balance and Sidebar Button */}
+    <div className="flex items-center">
+      <img
+        src="/src/coin.svg"
+        alt="Coin Image"
+        className="mr-2 h-12 w-auto"
+      />
+      <div className="text-4xl font-bold mr-6">{coin_balance}</div>
+      <button
+        onClick={handleSidebarToggle}
+        className="flex items-center justify-center"
+      >
+        <HamburgerBars className="h-12 w-12 text-white stroke-[4]" />
+      </button>
+    </div>
+  </div>
+</header>
+
     <div className="min-h-screen bg-gray-100 p-8">
 
-      <header className="bg-blue-600 p-4 text-white">
-
-        <div className="flex items-center">
-          <img
-            src="/src/1logo.svg"
-            alt="Company Logo"
-            className="mr-4 h-12 w-auto"
-          />
-          <div className="text-4xl font-bold">Balance Buddy</div>
-         
-        </div>
-      </header>
       <header>
         <h1 className="mb-6 text-4xl font-bold">Dashboard</h1>
         <h2>Welcome, {session?.user.email}</h2>
-
-        <button onClick={handleSidebarToggle}>
-          <HamburgerBars />
-        </button>
       </header>
 
-      <h3>Coin Balance  </h3>
-      <div>{coin_balance}</div>
+    
+     
       
 
       {/* Sidebar */}
@@ -120,6 +135,7 @@ function Dashboard() {
         </div>
       </main>
     </div>
+    </>
   );
 }
 
