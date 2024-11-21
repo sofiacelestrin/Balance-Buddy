@@ -91,7 +91,7 @@ function Dashboard() {
 
       <header>
         <h1 className="mb-6 text-4xl font-bold">Dashboard</h1>
-        <h2>Welcome, {session?.user.email}</h2>
+        {/* <h2>Welcome, {session?.user.email}</h2> */}
       </header>
 
     
