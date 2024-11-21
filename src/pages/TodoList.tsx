@@ -201,7 +201,7 @@ function TodoList() {
             </span>
             {/* Edit Button */}
             <Link
-              to="/add-task"
+              to="/edit-task"
               state={{ task }} // Pass task data to the AddTask page
               className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
             >
