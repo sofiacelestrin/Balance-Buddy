@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { customizationOption } from "../lib/types";
 import { getAllCustomizationOptions } from "./customizationOptionsService";
 import { supabase } from "./supabase";
 import { TablesInsert } from "./supabaseTypes";
@@ -77,4 +77,13 @@ export async function getCustomizationOptionsOwnership(userId: string) {
   }
 
   return processedResult;
+}
+
+export async function customizeAvatar(
+  originalAvatar: customizationOption[],
+  newAvatar: customizationOption[],
+) {
+  //first, check if in the newAvatar, there are options that the user does not own
+  console.log(originalAvatar);
+  console.log(newAvatar);
 }

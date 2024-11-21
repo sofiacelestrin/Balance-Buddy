@@ -20,13 +20,18 @@ function Dashboard() {
   const { isPending: isLoadingAvatar, data: avatarOptions } = useQuery({
     queryKey: ["user_avatar"],
     queryFn: async () => {
-      const options = await getCustomizationOptionsOwnership(session?.user.id as string);
-      const parsedOptions: avatarOptions = options?.reduce((optionsObject, option) => {
-        const category = option?.category as string;
-        const optionValue = option?.option_value as string;
-        optionsObject[category] = optionValue;
-        return optionsObject;
-      }, {});
+      const options = await getCustomizationOptionsOwnership(
+        session?.user.id as string,
+      );
+      const parsedOptions: avatarOptions = options?.reduce(
+        (optionsObject, option) => {
+          const category = option?.category as string;
+          const optionValue = option?.option_value as string;
+          optionsObject[category] = optionValue;
+          return optionsObject;
+        },
+        {},
+      );
       return parsedOptions;
     },
   });
@@ -41,24 +46,19 @@ function Dashboard() {
   const handleSidebarToggle = () => setIsSidebarOpen(true);
   const handleSidebarClose = () => setIsSidebarOpen(false);
 
-
-  
-
   return (
-    
-   <div className="min-h-screen bg-gray-100 p-8">
-<header className="bg-blue-600 p-4 text-white">
+    <div className="min-h-screen bg-gray-100 p-8">
+      <header className="bg-blue-600 p-4 text-white">
         <div className="flex items-center">
           <img
             src="/src/1logo.svg"
             alt="Company Logo"
-            className="h-12 w-auto mr-4"
+            className="mr-4 h-12 w-auto"
           />
           <div className="text-4xl font-bold">Balance Buddy</div>
         </div>
       </header>
       <header>
-        
         <h1 className="mb-6 text-4xl font-bold">Dashboard</h1>
         <h2>Welcome, {session?.user.email}</h2>
 
@@ -72,13 +72,18 @@ function Dashboard() {
         className={isSidebarOpen ? "w-56" : "w-0 overflow-x-hidden"}
         onClose={handleSidebarClose}
       />
-      {isSidebarOpen && <div className="fixed inset-0 bg-black bg-opacity-10 backdrop-blur-sm"></div>}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-10 backdrop-blur-sm"></div>
+      )}
 
       {/* Main Content */}
       <main className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Buddy Component */}
         <div className="col-span-1">
-          <Buddy avatarOptions={avatarOptions} isLoadingAvatar={isLoadingAvatar} />
+          <Buddy
+            avatarOptions={avatarOptions}
+            isLoadingAvatar={isLoadingAvatar}
+          />
         </div>
 
         {/* TodoList Component */}
@@ -98,15 +103,11 @@ function Dashboard() {
           <p>Current character stats will be displayed here.</p>
         </div>
       </main>
-      </div>
-
+    </div>
   );
 }
 
 export default Dashboard;
-
-
-
 
 // import { useQuery } from "@tanstack/react-query";
 // import { useMemo, useState } from "react";
@@ -122,7 +123,6 @@ export default Dashboard;
 //   //If you need the current session, use the useSession hook
 //   const { session } = useSession();
 //   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
 
 //   async function signOutUser() {
 //     const { error } = await supabase.auth.signOut();
@@ -182,7 +182,6 @@ export default Dashboard;
 //       {/* // Page container */}
 //       <div className="min-h-screen bg-gray-100 p-8">
 //         {/* Sidebar */}
-
 
 //         {/* Messages from character - WIP */}
 //         <div className="col-span-1 rounded bg-white p-6 shadow-lg">

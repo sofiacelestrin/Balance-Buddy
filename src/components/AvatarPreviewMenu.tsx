@@ -3,6 +3,7 @@ import { Enums } from "../supabase/supabaseTypes";
 import createAvatarFromOptions, { avatarOptions } from "../util/createAvatar";
 import { avatarDetails, customizationOption } from "../lib/types";
 import AvatarCard from "./AvatarCard";
+import { customizationCategories } from "../lib/constants";
 
 /**
  * Sometimes, some customization options cannot be customized. For example, the eyepatch cannot be changed in color or the user cannot modify the hat color if they don't have a hat on
@@ -19,23 +20,10 @@ function detectNonCustomizableCategory(
   return uniqueAvatars.size === 1; // True if all avatars are identical
 }
 
-const categories: Enums<"avatar_customization_categories">[] = [
-  "accessories",
-  "accessoriesColor",
-  "backgroundColor",
-  "clothesColor",
-  "clothing",
-  "clothingGraphic",
-  "eyebrows",
-  "eyes",
-  "facialHair",
-  "facialHairColor",
-  "hairColor",
-  "hatColor",
-  "mouth",
-  "skinColor",
-  "top",
-];
+const customizationCategoriesList = Object.entries(customizationCategories) as [
+  Enums<"avatar_customization_categories">,
+  string,
+][];
 
 type AvatarPreviewProps = {
   onSelectCategory: (
@@ -85,7 +73,7 @@ function AvatarPreviewMenu({
   return (
     <div className="w-full">
       <div className="custom-scrollbar flex w-full gap-4 overflow-x-scroll text-xs">
-        {categories.map((category) => (
+        {customizationCategoriesList.map(([category, uiLabel]) => (
           <button
             className={twMerge(
               "bg-gray-100 p-2 shadow-xl hover:bg-gray-400",
@@ -94,7 +82,7 @@ function AvatarPreviewMenu({
             key={category}
             onClick={() => onSelectCategory(category)}
           >
-            {category}
+            {uiLabel}
           </button>
         ))}
       </div>
@@ -102,15 +90,12 @@ function AvatarPreviewMenu({
       <ul className="flex flex-wrap justify-center gap-2">
         {!isNonCustomizable ? (
           avatarPreviews.map((avatar) => (
-            <AvatarCard avatar={avatar} onEquip={onEquip} />
+            <AvatarCard key={avatar.id} avatar={avatar} onEquip={onEquip} />
           ))
         ) : (
           <p>No customization options available for the current selection</p>
         )}
       </ul>
-
-      {/* This button attempts to save the user changes to the database */}
-      <button>Save Changes</button>
     </div>
   );
 }

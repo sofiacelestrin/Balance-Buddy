@@ -9,7 +9,6 @@ type AvatarCardProps = {
 function AvatarCard({ avatar, onEquip }: AvatarCardProps) {
   return (
     <li
-      key={avatar.id}
       className={twMerge(
         "flex flex-col bg-blue-100 p-2",
         avatar.isSelected && "ring-4 ring-yellow-300",

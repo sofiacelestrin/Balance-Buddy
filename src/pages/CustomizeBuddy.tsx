@@ -5,13 +5,18 @@ import { useSession } from "../contexts/SessionContext";
 import { avatarDetails, customizationOption } from "../lib/types";
 import { getCustomizationOptionsByCategoryWithOwnership } from "../supabase/customizationOptionsService";
 import { Enums } from "../supabase/supabaseTypes";
-import { getCustomizationOptionsOwnership } from "../supabase/userCustomizationOwnershipService";
+import {
+  customizeAvatar,
+  getCustomizationOptionsOwnership,
+} from "../supabase/userCustomizationOwnershipService";
 import createAvatarFromOptions, { avatarOptions } from "../util/createAvatar";
+import PurchaseConfirmationModal from "../components/PurchaseConfirmationModal";
 
 type CustomizeBuddyState = {
   selectedCategory: Enums<"avatar_customization_categories">;
   originalAvatarOptions: customizationOption[];
   selectedAvatarOptions: customizationOption[]; //The main avatar is built from these configurations
+  showPurchaseModal: boolean;
 };
 
 type Action =
@@ -20,13 +25,18 @@ type Action =
       type: "CATEGORY_CHANGE";
       payload: Enums<"avatar_customization_categories">;
     }
-  | { type: "EQUIP_ITEM"; payload: customizationOption };
+  | { type: "EQUIP_ITEM"; payload: customizationOption }
+  | { type: "TOGGLE_PURCHASE_MODAL" }
+  | { type: "REMOVE_UNOWNED_ITEM"; payload: customizationOption }
+  | { type: "RESET" }
+  | { type: "DISCARD_ALL_UNOWNED_ITEMS" };
 
 const initialState: CustomizeBuddyState = {
   selectedCategory: "backgroundColor",
   //use this for the purposes of comparison with the ever changing selectedAvatarOptions. The comparison will show which items are to be deactivated and activated and which items are to be purchased
   originalAvatarOptions: [],
   selectedAvatarOptions: [],
+  showPurchaseModal: false,
 };
 
 function reducer(
@@ -44,12 +54,60 @@ function reducer(
       return { ...state, selectedCategory: action.payload };
     case "EQUIP_ITEM": {
       const itemToEquip: customizationOption = action.payload;
+
       return {
         ...state,
         selectedAvatarOptions: state.selectedAvatarOptions.map((option) =>
           option.category === itemToEquip.category ? itemToEquip : option,
         ),
       };
+    }
+    case "TOGGLE_PURCHASE_MODAL":
+      return { ...state, showPurchaseModal: !state.showPurchaseModal };
+    case "REMOVE_UNOWNED_ITEM": {
+      const itemToRemove = action.payload;
+      return {
+        ...state,
+        selectedAvatarOptions: state.selectedAvatarOptions.map(
+          (selectedOption) => {
+            // If the category selected matches the item to remove, replace it with the corresponding item from originalAvatarOptions
+            if (selectedOption.category === itemToRemove.category) {
+              return (
+                state.originalAvatarOptions.find(
+                  (originalOption) =>
+                    originalOption.category === itemToRemove.category,
+                ) ?? selectedOption // Fallback to current option if no match found
+              );
+            }
+
+            // Otherwise, keep the option unchanged
+            return selectedOption;
+          },
+        ),
+      };
+    }
+    case "RESET":
+      return {
+        ...state,
+        selectedAvatarOptions: [...state.originalAvatarOptions],
+      };
+    case "DISCARD_ALL_UNOWNED_ITEMS": {
+      const filteredSelectedAvatar = state.selectedAvatarOptions.map(
+        (selectedOption) => {
+          //if the user does not own option c_i, find the replacement in the originalAvatarArray
+          if (!selectedOption.isOwned) {
+            return (
+              state.originalAvatarOptions.find(
+                (originalOption) =>
+                  originalOption.category === selectedOption.category,
+              ) ?? selectedOption
+            );
+            //If the user owns option c_i, then just leave it alone
+          } else return selectedOption;
+        },
+      );
+
+      return { ...state, selectedAvatarOptions: filteredSelectedAvatar };
     }
 
     default:
@@ -59,10 +117,15 @@ function reducer(
 
 function CustomizeBuddy() {
   //If you need the current session, use the useSession hook
-  const [{ selectedAvatarOptions, selectedCategory }, dispatch] = useReducer(
-    reducer,
-    initialState,
-  );
+  const [
+    {
+      selectedAvatarOptions,
+      selectedCategory,
+      originalAvatarOptions,
+      showPurchaseModal,
+    },
+    dispatch,
+  ] = useReducer(reducer, initialState);
   const { session } = useSession();
 
   //fetch the user's current avatar options. This fetch request only happens once
@@ -122,11 +185,15 @@ function CustomizeBuddy() {
     return createAvatarFromOptions(parsedOptions);
   }, [selectedAvatarOptions]);
 
-  const onSelectCategory = (
+  const unownedItems = selectedAvatarOptions.filter(
+    (option) => !option.isOwned,
+  );
+
+  const handleSelectCategory = (
     category: Enums<"avatar_customization_categories">,
   ) => dispatch({ type: "CATEGORY_CHANGE", payload: category });
 
-  const onEquip = (avatar: avatarDetails) => {
+  const handleEquip = (avatar: avatarDetails) => {
     dispatch({
       type: "EQUIP_ITEM",
       payload: {
@@ -138,22 +205,59 @@ function CustomizeBuddy() {
       },
     });
   };
+  const handleDiscardUnownedItem = (itemToRemove: customizationOption) =>
+    dispatch({ type: "REMOVE_UNOWNED_ITEM", payload: itemToRemove });
 
+  const handleDiscardAllItems = () =>
+    dispatch({ type: "DISCARD_ALL_UNOWNED_ITEMS" });
+
+  const handleSaveChanges = () => {
+    //Check if the user has any unowned items in the selectedCategory
+    if (unownedItems.length > 0) {
+      dispatch({ type: "TOGGLE_PURCHASE_MODAL" });
+      return;
+    }
+
+    customizeAvatar(originalAvatarOptions, selectedAvatarOptions);
+  };
+  const handleReset = () => dispatch({ type: "RESET" });
+  const handleClose = () => dispatch({ type: "TOGGLE_PURCHASE_MODAL" });
   //If avatar is loading (fetching from supabase) or if userAvatar hasn't been created, then return loading message. This should only happen on the initial page load
   if (isLoadingAvatar || !userAvatar) return <div>Loading...</div>;
 
   return (
-    <div className="mx-auto min-h-screen max-w-[960px]">
+    <div className="relative mx-auto min-h-screen max-w-[960px]">
+      {showPurchaseModal && (
+        <PurchaseConfirmationModal
+          items={unownedItems}
+          onBuyAndSave={function (): void {
+            throw new Error("Function not implemented.");
+          }}
+          onDiscardItem={handleDiscardUnownedItem}
+          onDiscardAllItems={handleDiscardAllItems}
+          onCancel={handleClose}
+        />
+      )}
       <h1>Customize your Buddy</h1>
+      {/* This button attempts to save the user changes to the database */}
+      <div className="absolute right-0 flex flex-col gap-1">
+        <button className="bg-red-300" onClick={handleSaveChanges}>
+          Save Changes
+        </button>
+        <button className="bg-red-300" onClick={handleReset}>
+          Reset
+        </button>
+      </div>
+
       <div className="flex flex-col items-center justify-center">
         <img src={userAvatar.toDataUri()} alt="User avatar" className="w-72" />
       </div>
       <AvatarPreviewMenu
-        onSelectCategory={onSelectCategory}
+        onSelectCategory={handleSelectCategory}
         categoryValues={categoryValues as customizationOption[]}
         userAvatar={selectedAvatarOptions}
         selectedCategory={selectedCategory}
-        onEquip={onEquip}
+        onEquip={handleEquip}
       />
     </div>
   );
