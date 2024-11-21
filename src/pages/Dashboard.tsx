@@ -79,7 +79,8 @@ function Dashboard() {
         </button>
       </header>
 
-      <h3>Coin Balance  <div>{coin_balance}</div></h3>
+      <h3>Coin Balance  </h3>
+      <div>{coin_balance}</div>
       
 
       {/* Sidebar */}
