@@ -35,6 +35,7 @@ type AvatarPreviewProps = {
   userAvatar: customizationOption[];
   selectedCategory: Enums<"avatar_customization_categories">;
   onEquip: (avatar: avatarDetails) => void;
+  onPurchaseItem: (itemToBuy: customizationOption) => Promise<never>;
 };
 
 function AvatarPreviewMenu({
@@ -43,6 +44,7 @@ function AvatarPreviewMenu({
   userAvatar,
   onEquip,
   selectedCategory,
+  onPurchaseItem,
 }: AvatarPreviewProps) {
   const parsedOptions: avatarOptions = {};
   for (const customization of userAvatar) {
@@ -90,7 +92,12 @@ function AvatarPreviewMenu({
       <ul className="flex flex-wrap justify-center gap-2">
         {!isNonCustomizable ? (
           avatarPreviews.map((avatar) => (
-            <AvatarCard key={avatar.id} avatar={avatar} onEquip={onEquip} />
+            <AvatarCard
+              key={avatar.id}
+              avatar={avatar}
+              onEquip={onEquip}
+              onPurchaseItem={onPurchaseItem}
+            />
           ))
         ) : (
           <p>No customization options available for the current selection</p>

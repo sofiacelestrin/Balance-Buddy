@@ -22,7 +22,7 @@ function PurchaseConfirmationModal({
     <div className="fixed inset-0 z-50 bg-black bg-opacity-10 pt-24 backdrop-blur-sm">
       <div className="m-auto w-3/4 rounded-md bg-white p-2">
         <div className="flex justify-between px-2">
-          <h2>You are buying new items</h2>
+          {items.length > 0 && <h2>You are buying new items</h2>}
           <button
             onClick={onCancel}
             className="w-6 rounded-full ring ring-red-400"
@@ -30,7 +30,6 @@ function PurchaseConfirmationModal({
             X
           </button>
         </div>
-
         <table className="w-full">
           <thead>
             <tr>
@@ -55,8 +54,12 @@ function PurchaseConfirmationModal({
         </table>
         <div className="modal-footer">
           <p>Total Price: ${totalPrice}</p>
-          <button onClick={onDiscardAllItems}>Discard All Unowned Items</button>
-          <button onClick={onBuyAndSave}>Buy All and Save Changes</button>
+          <button onClick={onDiscardAllItems} disabled={!items.length}>
+            Remove all items
+          </button>
+          <button onClick={onBuyAndSave}>
+            {items.length > 0 && "Purchase and"} Save Changes
+          </button>
         </div>
       </div>
     </div>

@@ -1,4 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import {
+  InvalidateQueryFilters,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useEffect, useMemo, useReducer } from "react";
 import AvatarPreviewMenu from "../components/AvatarPreviewMenu";
 import { useSession } from "../contexts/SessionContext";
@@ -11,6 +16,10 @@ import {
 } from "../supabase/userCustomizationOwnershipService";
 import createAvatarFromOptions, { avatarOptions } from "../util/createAvatar";
 import PurchaseConfirmationModal from "../components/PurchaseConfirmationModal";
+import {
+  getUserCoinBalance,
+  purchaseCustomizationOptions as purchaseCustomizationOptionsSupabase,
+} from "../supabase/userService";
 
 type CustomizeBuddyState = {
   selectedCategory: Enums<"avatar_customization_categories">;
@@ -116,7 +125,7 @@ function reducer(
 }
 
 function CustomizeBuddy() {
-  //If you need the current session, use the useSession hook
+  //State and Derived state first
   const [
     {
       selectedAvatarOptions,
@@ -127,6 +136,11 @@ function CustomizeBuddy() {
     dispatch,
   ] = useReducer(reducer, initialState);
   const { session } = useSession();
+  const queryClient = useQueryClient();
+  const unownedItems = selectedAvatarOptions.filter(
+    (option) => !option.isOwned,
+  );
+  //Remote data fetching below
 
   //fetch the user's current avatar options. This fetch request only happens once
   const { isPending: isLoadingAvatar, data: fetchedAvatarOptions } = useQuery({
@@ -145,21 +159,36 @@ function CustomizeBuddy() {
     {
       queryKey: ["category_values", selectedCategory],
       queryFn: async () => {
-        const data = await getCustomizationOptionsByCategoryWithOwnership(
+        return await getCustomizationOptionsByCategoryWithOwnership(
           session?.user.id as string,
           selectedCategory,
         );
-        return data?.map((option) => ({
-          category: option.category,
-          price: option.price,
-          option_value: option.option_value,
-          id: option.id,
-          isOwned: option.isowned,
-        }));
       },
       staleTime: Infinity,
     },
   );
+
+  const { data: coin_balance } = useQuery({
+    queryKey: ["coin_balance"],
+    queryFn: async () => await getUserCoinBalance(session?.user.id as string),
+  });
+
+  //This mutation function can be used to purchase an individual option or multiple options if the PurchaseModalWindow is open
+  const { mutateAsync: purchaseCustomizationOptions } = useMutation({
+    mutationFn: async (cartItems: customizationOption[]) =>
+      await purchaseCustomizationOptionsSupabase(
+        cartItems,
+        session?.user.id as string,
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries([
+        "coin_balance",
+        "category_values",
+      ] as InvalidateQueryFilters);
+      alert("Purchase successful :)");
+    },
+    onError: (error) => alert("Purchase not successful :( " + error.message),
+  });
 
   //Once the user's avatar data comes from supabase, we save the result to the saveAvatarOptions state. This useEffect should only execute once! From here on out, the avatarOptions object will be updated only from the client side
   useEffect(() => {
@@ -185,10 +214,7 @@ function CustomizeBuddy() {
     return createAvatarFromOptions(parsedOptions);
   }, [selectedAvatarOptions]);
 
-  const unownedItems = selectedAvatarOptions.filter(
-    (option) => !option.isOwned,
-  );
-
+  //Event handlers below
   const handleSelectCategory = (
     category: Enums<"avatar_customization_categories">,
   ) => dispatch({ type: "CATEGORY_CHANGE", payload: category });
@@ -220,6 +246,8 @@ function CustomizeBuddy() {
 
     customizeAvatar(originalAvatarOptions, selectedAvatarOptions);
   };
+  const handlePurchaseSingleItem = async (itemToBuy: customizationOption) =>
+    await purchaseCustomizationOptions([itemToBuy]);
   const handleReset = () => dispatch({ type: "RESET" });
   const handleClose = () => dispatch({ type: "TOGGLE_PURCHASE_MODAL" });
   //If avatar is loading (fetching from supabase) or if userAvatar hasn't been created, then return loading message. This should only happen on the initial page load
@@ -241,6 +269,7 @@ function CustomizeBuddy() {
       <h1>Customize your Buddy</h1>
       {/* This button attempts to save the user changes to the database */}
       <div className="absolute right-0 flex flex-col gap-1">
+        <p>{coin_balance}</p>
         <button className="bg-red-300" onClick={handleSaveChanges}>
           Save Changes
         </button>
@@ -258,6 +287,7 @@ function CustomizeBuddy() {
         userAvatar={selectedAvatarOptions}
         selectedCategory={selectedCategory}
         onEquip={handleEquip}
+        onPurchaseItem={handlePurchaseSingleItem}
       />
     </div>
   );
