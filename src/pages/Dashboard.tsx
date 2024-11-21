@@ -128,11 +128,7 @@ function Dashboard() {
           <p>No new messages.</p>
         </div>
 
-        {/* Stats */}
-        <div className="col-span-1 rounded bg-white p-6 shadow-lg">
-          <h2 className="mb-4 text-2xl font-bold">Stats</h2>
-          <p>Current character stats will be displayed here.</p>
-        </div>
+
       </main>
     </div>
     </>
