@@ -109,14 +109,25 @@ function AddTask() {
   if (loading) return <div>Loading...</div>;
 
   return (
+    <>
+    <header className="bg-blue-600 p-4 text-white">
+    <div className="flex items-center">
+      <img
+        src="/src/1logo.svg"
+        alt="Company Logo"
+        className="h-12 w-auto mr-4"
+      />
+      <div className="text-4xl font-bold">Balance Buddy</div>
+    </div>
+  </header>
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="mb-6 text-4xl font-bold">Add Task</h1>
       <form
         onSubmit={handleSubmit}
-        className="mx-auto w-96 rounded bg-white p-6 shadow-lg"
+        className="mx-auto w-1/2 rounded bg-white p-6 shadow-lg"
       >
         <div className="mb-4">
-          <label htmlFor="description" className="block text-sm font-semibold">
+          <label htmlFor="description" className="block text-xl font-semibold">
             Task Description
           </label>
           <textarea
@@ -129,7 +140,7 @@ function AddTask() {
           />
         </div>
         <div className="mb-4">
-          <label htmlFor="category" className="block text-sm font-semibold">
+          <label htmlFor="category" className="block text-xl font-semibold">
             Category
           </label>
           <select
@@ -147,7 +158,7 @@ function AddTask() {
           </select>
         </div>
         <div className="mb-4">
-          <label htmlFor="due" className="block text-sm font-semibold">
+          <label htmlFor="due" className="block text-xl font-semibold">
             Due Date
           </label>
           <input
@@ -161,7 +172,7 @@ function AddTask() {
           />
         </div>
         <div className="mb-4">
-          <label htmlFor="complexity" className="block text-sm font-semibold">
+          <label htmlFor="complexity" className="block text-xl font-semibold">
             Complexity
           </label>
           <select
@@ -180,13 +191,14 @@ function AddTask() {
         </div>
         <button
           type="submit"
-          className="w-full rounded bg-blue-500 py-2 text-white hover:bg-blue-600"
+          className="w-full rounded bg-blue-500 py-2 text-white text-xl hover:bg-blue-600"
         >
           Add Task
         </button>
       </form>
       {error && <p className="mt-4 text-red-500">{error}</p>}
     </div>
+    </>
   );
 }
 
