@@ -191,7 +191,7 @@ function AddTask() {
         </div>
         <button
           type="submit"
-          className="w-full rounded bg-blue-500 py-2 text-white text-xl hover:bg-blue-600"
+          className="w-full rounded bg-blue-500 py-2 text-white text-xl hover:bg-blue-600 font-semibold"
         >
           Add Task
         </button>
