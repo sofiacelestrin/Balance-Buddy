@@ -27,10 +27,12 @@ function HomeSidebar({
       >
         ×
       </button>
-      <div className="flex flex-col whitespace-nowrap pt-20 text-xl font-bold">
-        <Link to="/journal">Journal</Link>
+      <div className="flex flex-col whitespace-nowrap pt-20 text-xl font-bold space-y-4">
         <Link to="/customize-buddy">Customize Buddy</Link>
+        <Link to="/add-task">Add Task</Link>
+        <Link to="/journal">Journal</Link>
       </div>
+
 
       <button className="whitespace-nowrap text-red-500" onClick={signOutUser}>
         LOG OUT

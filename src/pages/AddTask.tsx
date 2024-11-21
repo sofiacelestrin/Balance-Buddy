@@ -104,12 +104,18 @@ function AddTask() {
       console.error("Error adding task:", err);
       setError("Error adding task. Please try again.");
     }
+
   };
+
+  
 
   if (loading) return <div>Loading...</div>;
 
+
   return (
     <>
+
+    
     <header className="bg-blue-600 p-4 text-white">
     <div className="flex items-center">
       <img
