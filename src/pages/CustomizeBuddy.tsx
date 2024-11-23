@@ -250,6 +250,7 @@ function CustomizeBuddy() {
     await purchaseCustomizationOptions([itemToBuy]);
   const handleReset = () => dispatch({ type: "RESET" });
   const handleClose = () => dispatch({ type: "TOGGLE_PURCHASE_MODAL" });
+
   //If avatar is loading (fetching from supabase) or if userAvatar hasn't been created, then return loading message. This should only happen on the initial page load
   if (isLoadingAvatar || !userAvatar) return <div>Loading...</div>;
 
@@ -267,19 +268,19 @@ function CustomizeBuddy() {
         />
       )}
       <h1>Customize your Buddy</h1>
-      {/* This button attempts to save the user changes to the database */}
-      <div className="absolute right-0 flex flex-col gap-1">
-        <p>{coin_balance}</p>
+      <p>{coin_balance}</p>
+      <div className="flex flex-col items-center justify-center">
+        <img src={userAvatar.toDataUri()} alt="User avatar" className="w-72" />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        {/* This button attempts to save the user changes to the database */}
         <button className="bg-red-300" onClick={handleSaveChanges}>
           Save Changes
         </button>
         <button className="bg-red-300" onClick={handleReset}>
           Reset
         </button>
-      </div>
-
-      <div className="flex flex-col items-center justify-center">
-        <img src={userAvatar.toDataUri()} alt="User avatar" className="w-72" />
       </div>
       <AvatarPreviewMenu
         onSelectCategory={handleSelectCategory}
