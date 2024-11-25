@@ -17,35 +17,48 @@ function Registration() {
     e.preventDefault();
     setErrorMessage("");
     setSuccessMessage("");
-
+  
     if (password !== confirmPassword) {
       setErrorMessage("Passwords do not match.");
       return;
     }
-
+  
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
     });
-
+  
     if (signUpError) {
       console.error("Error signing up:", signUpError.message);
       setErrorMessage(signUpError.message);
       return;
     }
-
+  
     const { user } = signUpData;
     const { data: userData, error: userInsertError } = await supabase
       .from("users")
       .insert([{ id: user?.id, full_name: fullName }]);
-
+  
     if (userInsertError) {
       console.error("Error inserting user data:", userInsertError.message);
       setErrorMessage("Account created, but additional data failed to save.");
     } else {
-      setSuccessMessage("Account created!");
+      // Now add an entry in the meters table for this new user with all meters set to 100
+      const { data: metersData, error: metersInsertError } = await supabase
+        .from("meters")
+        .insert([
+          { user_id: user?.id, health: 100, self_actualization: 100, happiness: 100, social_connection: 100 },
+        ]);
+  
+      if (metersInsertError) {
+        console.error("Error inserting meters data:", metersInsertError.message);
+        setErrorMessage("Account created, but error setting up meters.");
+      } else {
+        setSuccessMessage("Account created!");
+      }
     }
   }
+  
 
   useEffect(() => {
     if (!successMessage) return;

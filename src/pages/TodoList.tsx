@@ -87,26 +87,85 @@ function TodoList() {
     fetchTasks();
   }, []);
 
+  let isPending = false;
+
   // Toggle completion
   async function toggleCompletion(id: number) {
+    if (isPending) return; // If pending operation, ignore further clicks
+
+    isPending = true; // Mark operation as pending
+
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError) throw sessionError;
+
+    if (!session) {
+      console.error("User session not found.");
+      setError("User not authenticated.");
+      isPending = false; // Reset the flag on error
+      return;
+    }
+
+    const userId = session.user.id;
+
     const updatedTask = tasks.find((task) => task.id === id);
-    if (!updatedTask) return;
+    if (!updatedTask) {
+      isPending = false; // Reset the flag if no task is found
+      return;
+    }
+
+    const { category, complexity } = updatedTask;
 
     try {
-      const { error } = await supabase
+      // Update task completion status
+      const { error: taskError } = await supabase
         .from("tasks")
         .update({ completed: !updatedTask.completed })
         .eq("id", id);
 
-      if (error) throw error;
+      if (taskError) throw taskError;
 
+      // Fetch current meter value only after the task is updated
+      const { data: currentMeterData, error: meterFetchError } = await supabase
+        .from("meters")
+        .select(`${category}`)
+        .eq("user_id", userId)
+        .single();
+
+      if (meterFetchError) throw meterFetchError;
+
+      // Calculate the new meter value based on task completion status (decrease if uncheck, increase if check)
+      const newMeterValue = Math.max(
+        0,
+        Math.min(
+          100,
+          currentMeterData[category] + (updatedTask.completed ? -complexity : complexity)
+        )
+      );
+
+      // Update the meter
+      const { error: meterError } = await supabase
+        .from("meters")
+        .update({
+          [category]: newMeterValue,
+        })
+        .eq("user_id", userId);
+
+      if (meterError) throw meterError;
+
+      // Update local state to reflect task completion toggle
       setTasks(
         tasks.map((task) =>
-          task.id === id ? { ...task, completed: !task.completed } : task,
-        ),
+          task.id === id ? { ...task, completed: !task.completed } : task
+        )
       );
     } catch (err) {
-      console.error("Error updating task:", err);
+      console.error("Error updating task and meter:", err);
+    } finally {
+      isPending = false; // Reset flag
     }
   }
 
