@@ -19,6 +19,12 @@ type Task = {
   completed: boolean;
 };
 
+const calculateStandardDeviation = (meterValues: number[]): number => {
+  const mean = meterValues.reduce((acc, value) => acc + value, 0) / meterValues.length;
+  const variance = meterValues.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) / meterValues.length;
+  return Math.sqrt(variance);
+};
+
 // Helper function to map enum to display-friendly names
 function getCategoryDisplayName(category: Category): string {
   switch (category) {
@@ -39,6 +45,7 @@ function TodoList() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "completed" | "uncompleted">(
     "all",
   ); // Filter state to control showing all tasks or only completed tasks
@@ -90,84 +97,151 @@ function TodoList() {
   let isPending = false;
 
   // Toggle completion
-  async function toggleCompletion(id: number) {
-    if (isPending) return; // If pending operation, ignore further clicks
+  // Toggle completion
+async function toggleCompletion(id: number) {
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
 
-    isPending = true; // Mark operation as pending
+  if (sessionError) throw sessionError;
 
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
+  if (!session) {
+    console.error("User session not found.");
+    setError("User not authenticated.");
+    isPending = false; // Reset the flag on error
+    return;
+  }
 
-    if (sessionError) throw sessionError;
+  const userId = session.user.id;
 
-    if (!session) {
-      console.error("User session not found.");
-      setError("User not authenticated.");
-      isPending = false; // Reset the flag on error
-      return;
+  const updatedTask = tasks.find((task) => task.id === id);
+  if (!updatedTask) {
+    isPending = false; // Reset the flag if no task is found
+    return;
+  }
+
+  const { category, complexity } = updatedTask;
+
+  try {
+    // Fetch all meter categories for this user
+    const { data: allMeterData, error: allMeterFetchError } = await supabase
+      .from("meters")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (allMeterFetchError) throw allMeterFetchError;
+
+    // Fetch the current coin balance
+    const { data: currentUserData, error: userFetchError } = await supabase
+      .from("users")
+      .select("coin_balance")
+      .eq("id", userId)
+      .single();
+
+    if (userFetchError) throw userFetchError;
+
+    let totalCombinedMeter = 0;
+
+    // Add all categories to totalCombinedMeter
+    if (allMeterData) {
+      if ('health' in allMeterData) totalCombinedMeter += allMeterData.health;
+      if ('happiness' in allMeterData) totalCombinedMeter += allMeterData.happiness;
+      if ('self_actualization' in allMeterData) totalCombinedMeter += allMeterData.self_actualization;
+      if ('social_connection' in allMeterData) totalCombinedMeter += allMeterData.social_connection;
     }
 
-    const userId = session.user.id;
+    console.log("Total Combined Meter: ", totalCombinedMeter);
 
-    const updatedTask = tasks.find((task) => task.id === id);
-    if (!updatedTask) {
-      isPending = false; // Reset the flag if no task is found
-      return;
+    // Calculate the base coin gain
+    const baseCoinGain = updatedTask.completed ? -complexity : complexity;
+
+    // Multiply base coin gain by the total combined meter value / 100
+    const coinGain = baseCoinGain * (totalCombinedMeter / 100);
+
+    // Round the final coin balance
+    const newCoinBalance = Math.round(
+      (currentUserData?.coin_balance || 0) + coinGain
+    );
+
+    if (newCoinBalance < 0) {
+      console.error("Insufficient coins to complete this operation.");
+      throw new Error("Insufficient coins.");
     }
 
-    const { category, complexity } = updatedTask;
+    // Update the coin balance
+    const { error: coinUpdateError } = await supabase
+      .from("users")
+      .update({ coin_balance: newCoinBalance })
+      .eq("id", userId);
 
-    try {
-      // Update task completion status
-      const { error: taskError } = await supabase
-        .from("tasks")
-        .update({ completed: !updatedTask.completed })
-        .eq("id", id);
+    if (coinUpdateError) throw coinUpdateError;
 
-      if (taskError) throw taskError;
+    // Fetch the current meter value only after the coin is updated
+    const { data: currentMeterData, error: meterFetchError } = await supabase
+      .from("meters")
+      .select(`${category}`)
+      .eq("user_id", userId)
+      .single();
 
-      // Fetch current meter value only after the task is updated
-      const { data: currentMeterData, error: meterFetchError } = await supabase
-        .from("meters")
-        .select(`${category}`)
-        .eq("user_id", userId)
-        .single();
+    if (meterFetchError) throw meterFetchError;
 
-      if (meterFetchError) throw meterFetchError;
+    // Calculate the new meter value based on task completion status (decrease if uncheck, increase if check)
+    const meterValues = [];
+    if ('health' in allMeterData) meterValues.push(allMeterData.health);
+    if ('happiness' in allMeterData) meterValues.push(allMeterData.happiness);
+    if ('self_actualization' in allMeterData) meterValues.push(allMeterData.self_actualization);
+    if ('social_connection' in allMeterData) meterValues.push(allMeterData.social_connection);
 
-      // Calculate the new meter value based on task completion status (decrease if uncheck, increase if check)
-      const newMeterValue = Math.max(
+    // Calculate the standard deviation of meter values
+    const stddev = calculateStandardDeviation(meterValues);
+
+    // Calculate the meter gain multiplier using 1 + (50 - stddev) / 15
+    const meterGainMultiplier = 1 + (50 - stddev) / 15;
+
+    // Adjust complexity based on whether task is being checked or unchecked
+    const adjustedComplexity = updatedTask.completed ? -complexity : complexity;
+
+    // Apply the adjusted complexity and multiplier to calculate the new meter value
+    const newMeterValue = Math.round(
+      Math.max(
         0,
         Math.min(
           100,
-          currentMeterData[category] + (updatedTask.completed ? -complexity : complexity)
+          currentMeterData[category] + adjustedComplexity * meterGainMultiplier
         )
-      );
+      )
+    );
 
-      // Update the meter
-      const { error: meterError } = await supabase
-        .from("meters")
-        .update({
-          [category]: newMeterValue,
-        })
-        .eq("user_id", userId);
+    // Update the meter
+    const { error: meterError } = await supabase
+      .from("meters")
+      .update({ [category]: newMeterValue })
+      .eq("user_id", userId);
 
-      if (meterError) throw meterError;
+    if (meterError) throw meterError;
 
-      // Update local state to reflect task completion toggle
-      setTasks(
-        tasks.map((task) =>
-          task.id === id ? { ...task, completed: !task.completed } : task
-        )
-      );
-    } catch (err) {
-      console.error("Error updating task and meter:", err);
-    } finally {
-      isPending = false; // Reset flag
-    }
+    // Update the task completion status now that coins and meter are updated
+    const { error: taskError } = await supabase
+      .from("tasks")
+      .update({ completed: !updatedTask.completed })
+      .eq("id", id);
+
+    if (taskError) throw taskError;
+
+    // Update local state to reflect task completion toggle
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+    setErrorMessage("");
+  } catch (err) {
+    console.error("Error updating task, meter, or coin balance:", err);
+    setErrorMessage("Insufficient coin balance to uncheck task.");
   }
+}
 
   // Delete task
   async function deleteTask(id: number) {
@@ -194,6 +268,13 @@ function TodoList() {
   return (
     <div className="mx-auto max-w-lg rounded bg-white p-6 shadow-lg">
       <h1 className="mb-4 text-2xl font-bold">Your Todos</h1>
+
+      {/* Show error message if any */}
+      {errorMessage && (
+        <div className="error-message" style={{ color: "red", margin: "10px 0" }}>
+          {errorMessage}
+        </div>
+      )}
 
       {/* Filter Buttons */}
       <div className="mb-4 flex justify-end space-x-2">
