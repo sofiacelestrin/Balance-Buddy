@@ -14,6 +14,8 @@ function Buddy({ avatarOptions, isLoadingAvatar }) {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [coinBalance, setCoinBalance] = useState(0);
+
   let userAvatar: Result;
 
   // Create Avatar
