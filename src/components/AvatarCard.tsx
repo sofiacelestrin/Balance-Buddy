@@ -4,7 +4,7 @@ import { avatarDetails, customizationOption } from "../lib/types";
 type AvatarCardProps = {
   avatar: avatarDetails;
   onEquip: (avatar: avatarDetails) => void;
-  onPurchaseItem: (itemToBuy: customizationOption) => Promise<never>;
+  onPurchaseItem: (itemToBuy: customizationOption) => Promise<void>;
 };
 
 function AvatarCard({ avatar, onEquip, onPurchaseItem }: AvatarCardProps) {
@@ -34,6 +34,8 @@ function AvatarCard({ avatar, onEquip, onPurchaseItem }: AvatarCardProps) {
             {!avatar.isOwned ? "Try on" : "Equip"}
           </button>
         )}
+        {/* I think the price of an item can be displayed on the top right corner of the avatar card, inside of it. If not you can leave it at the bottom like it is now. I also suggest including the coin icon you used in the dashboard page in here, next to the price  */}
+        {!avatar.isOwned && <p className="text-center">{avatar.price}</p>}
       </div>
     </li>
   );

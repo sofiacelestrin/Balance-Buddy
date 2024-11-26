@@ -19,6 +19,7 @@ import Journal from "./pages/Journal";
 import CustomizeBuddy from "./pages/CustomizeBuddy";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Toaster } from "react-hot-toast";
 
 function PrivateRoutes() {
   const { session, isLoading } = useSession();
@@ -39,7 +40,7 @@ const router = createBrowserRouter(
         <Route path="create-character" element={<CharacterCreation />} />
 
         <Route path="add-task" element={<AddTask />} />
-        <Route path="/edit-task" element={<EditTask />} />
+        <Route path="edit-task" element={<EditTask />} />
         <Route path="journal" element={<Journal />} />
         <Route path="customize-buddy" element={<CustomizeBuddy />} />
       </Route>
@@ -52,6 +53,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster />
       <ReactQueryDevtools />
       <SessionProvider>
         <RouterProvider router={router} />

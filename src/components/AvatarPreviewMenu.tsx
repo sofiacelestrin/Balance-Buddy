@@ -35,7 +35,7 @@ type AvatarPreviewProps = {
   userAvatar: customizationOption[];
   selectedCategory: Enums<"avatar_customization_categories">;
   onEquip: (avatar: avatarDetails) => void;
-  onPurchaseItem: (itemToBuy: customizationOption) => Promise<never>;
+  onPurchaseItem: (itemToBuy: customizationOption) => Promise<void>;
 };
 
 function AvatarPreviewMenu({

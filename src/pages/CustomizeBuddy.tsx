@@ -5,21 +5,25 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useEffect, useMemo, useReducer } from "react";
+
+import toast from "react-hot-toast";
 import AvatarPreviewMenu from "../components/AvatarPreviewMenu";
+import PurchaseConfirmationModal from "../components/PurchaseConfirmationModal";
 import { useSession } from "../contexts/SessionContext";
 import { avatarDetails, customizationOption } from "../lib/types";
 import { getCustomizationOptionsByCategoryWithOwnership } from "../supabase/customizationOptionsService";
 import { Enums } from "../supabase/supabaseTypes";
 import {
-  customizeAvatar,
+  buyOptionsAndSave,
   getCustomizationOptionsOwnership,
 } from "../supabase/userCustomizationOwnershipService";
-import createAvatarFromOptions, { avatarOptions } from "../util/createAvatar";
-import PurchaseConfirmationModal from "../components/PurchaseConfirmationModal";
 import {
   getUserCoinBalance,
   purchaseCustomizationOptions as purchaseCustomizationOptionsSupabase,
 } from "../supabase/userService";
+import createAvatarFromOptions, { avatarOptions } from "../util/createAvatar";
+
+import isEqual from "lodash/isEqual";
 
 type CustomizeBuddyState = {
   selectedCategory: Enums<"avatar_customization_categories">;
@@ -38,10 +42,11 @@ type Action =
   | { type: "TOGGLE_PURCHASE_MODAL" }
   | { type: "REMOVE_UNOWNED_ITEM"; payload: customizationOption }
   | { type: "RESET" }
-  | { type: "DISCARD_ALL_UNOWNED_ITEMS" };
+  | { type: "DISCARD_ALL_UNOWNED_ITEMS" }
+  | { type: "AFTER_SAVE_CHANGES" };
 
 const initialState: CustomizeBuddyState = {
-  selectedCategory: "backgroundColor",
+  selectedCategory: "accessories",
   //use this for the purposes of comparison with the ever changing selectedAvatarOptions. The comparison will show which items are to be deactivated and activated and which items are to be purchased
   originalAvatarOptions: [],
   selectedAvatarOptions: [],
@@ -75,24 +80,37 @@ function reducer(
       return { ...state, showPurchaseModal: !state.showPurchaseModal };
     case "REMOVE_UNOWNED_ITEM": {
       const itemToRemove = action.payload;
+      const newSelectedAvataOptions = state.selectedAvatarOptions.map(
+        (selectedOption) => {
+          // If the category selected matches the item to remove, replace it with the corresponding item from originalAvatarOptions
+          if (selectedOption.category === itemToRemove.category) {
+            return (
+              state.originalAvatarOptions.find(
+                (originalOption) =>
+                  originalOption.category === itemToRemove.category,
+              ) ?? selectedOption // Fallback to current option if no match found
+            );
+          }
+
+          // Otherwise, keep the option unchanged
+          return selectedOption;
+        },
+      );
+
+      // Check if the unownedItems array is empty after removal
+      const hasUnownedItems = newSelectedAvataOptions.some(
+        (option) => !option.isOwned,
+      );
+      const hasUnsavedChanges = !isEqual(
+        state.originalAvatarOptions,
+        state.selectedAvatarOptions,
+      );
+
       return {
         ...state,
-        selectedAvatarOptions: state.selectedAvatarOptions.map(
-          (selectedOption) => {
-            // If the category selected matches the item to remove, replace it with the corresponding item from originalAvatarOptions
-            if (selectedOption.category === itemToRemove.category) {
-              return (
-                state.originalAvatarOptions.find(
-                  (originalOption) =>
-                    originalOption.category === itemToRemove.category,
-                ) ?? selectedOption // Fallback to current option if no match found
-              );
-            }
-
-            // Otherwise, keep the option unchanged
-            return selectedOption;
-          },
-        ),
+        selectedAvatarOptions: [...newSelectedAvataOptions],
+        //If the cart has unowned items, continue showing purchase modal. However, if there are no unowned items, ask next question. If there are unsavedChanges, continue displaying purchase modal, otherwise display nothing
+        showPurchaseModal: hasUnownedItems || hasUnsavedChanges,
       };
     }
     case "RESET":
@@ -118,6 +136,11 @@ function reducer(
 
       return { ...state, selectedAvatarOptions: filteredSelectedAvatar };
     }
+    case "AFTER_SAVE_CHANGES":
+      return {
+        ...state,
+        originalAvatarOptions: [...state.selectedAvatarOptions],
+      };
 
     default:
       return state;
@@ -135,13 +158,18 @@ function CustomizeBuddy() {
     },
     dispatch,
   ] = useReducer(reducer, initialState);
+
   const { session } = useSession();
   const queryClient = useQueryClient();
   const unownedItems = selectedAvatarOptions.filter(
     (option) => !option.isOwned,
   );
-  //Remote data fetching below
 
+  const hasUnsavedChanges = useMemo(() => {
+    return !isEqual(originalAvatarOptions, selectedAvatarOptions);
+  }, [originalAvatarOptions, selectedAvatarOptions]);
+
+  //Remote data fetching below
   //fetch the user's current avatar options. This fetch request only happens once
   const { isPending: isLoadingAvatar, data: fetchedAvatarOptions } = useQuery({
     queryKey: ["user_avatar_customization"],
@@ -171,23 +199,83 @@ function CustomizeBuddy() {
   const { data: coin_balance } = useQuery({
     queryKey: ["coin_balance"],
     queryFn: async () => await getUserCoinBalance(session?.user.id as string),
+    staleTime: Infinity,
   });
 
   //This mutation function can be used to purchase an individual option or multiple options if the PurchaseModalWindow is open
   const { mutateAsync: purchaseCustomizationOptions } = useMutation({
-    mutationFn: async (cartItems: customizationOption[]) =>
+    mutationFn: async (cartItems: customizationOption[]) => {
       await purchaseCustomizationOptionsSupabase(
         cartItems,
         session?.user.id as string,
-      ),
+      );
+    },
+    onMutate: (cartItems) => {
+      const totalCost = cartItems.reduce((sum, item) => sum + item.price, 0);
+      if (totalCost > coin_balance) {
+        throw new Error(
+          "You don't have enough coins to complete this purchase",
+        );
+      }
+      toast.loading("Loading...");
+    },
     onSuccess: () => {
+      toast.remove();
       queryClient.invalidateQueries([
         "coin_balance",
         "category_values",
       ] as InvalidateQueryFilters);
-      alert("Purchase successful :)");
+      toast.success("Succesfully Made Purchase");
     },
-    onError: (error) => alert("Purchase not successful :( " + error.message),
+    onError: (error) => {
+      toast.remove();
+      toast.error(error.message);
+    },
+    networkMode: "always",
+    retry: 2, // Retry a maximum of 3 times
+    retryDelay: (attempt) =>
+      Math.min(attempt > 1 ? 2 ** attempt * 1000 : 1000, 30 * 1000), // Exponential backoff up to 10 seconds
+  });
+
+  const { mutateAsync: handleSaveChangesMutation } = useMutation({
+    mutationFn: async () => {
+      return await buyOptionsAndSave(
+        originalAvatarOptions,
+        selectedAvatarOptions,
+        session?.user.id as string,
+      );
+    },
+    onMutate: () => {
+      const totalCost = unownedItems.reduce((sum, item) => sum + item.price, 0);
+      if (totalCost > coin_balance) {
+        throw new Error(
+          "You don't have enough coins to complete this purchase",
+        );
+      }
+      toast.loading("Saving...");
+    },
+    onSuccess: (data) => {
+      toast.remove();
+      dispatch({ type: "AFTER_SAVE_CHANGES" });
+
+      //if the purchase modal was openened when handleSaveChangesMutation function was executed, then a purchase was made
+      if (showPurchaseModal) {
+        dispatch({ type: "TOGGLE_PURCHASE_MODAL" });
+      }
+      queryClient.invalidateQueries([
+        "coin_balance",
+        "category_values",
+      ] as InvalidateQueryFilters);
+      toast.success(data);
+    },
+    onError: (error) => {
+      toast.remove();
+      toast.error(error.message);
+    },
+    networkMode: "always",
+    retry: 2, // Retry a maximum of 3 times
+    retryDelay: (attempt) =>
+      Math.min(attempt > 1 ? 2 ** attempt * 1000 : 1000, 30 * 1000), // Exponential backoff up to 10 seconds
   });
 
   //Once the user's avatar data comes from supabase, we save the result to the saveAvatarOptions state. This useEffect should only execute once! From here on out, the avatarOptions object will be updated only from the client side
@@ -231,24 +319,25 @@ function CustomizeBuddy() {
       },
     });
   };
-  const handleDiscardUnownedItem = (itemToRemove: customizationOption) =>
+  const handleDiscardUnownedItem = (itemToRemove: customizationOption) => {
     dispatch({ type: "REMOVE_UNOWNED_ITEM", payload: itemToRemove });
+  };
 
-  const handleDiscardAllItems = () =>
-    dispatch({ type: "DISCARD_ALL_UNOWNED_ITEMS" });
-
-  const handleSaveChanges = () => {
-    //Check if the user has any unowned items in the selectedCategory
+  //When user clicks on Save Changes in the Dashboard. Needs to be implemented with react query
+  const handleSaveChanges = async () => {
+    //Check if the user has any unowned items
     if (unownedItems.length > 0) {
       dispatch({ type: "TOGGLE_PURCHASE_MODAL" });
       return;
     }
 
-    customizeAvatar(originalAvatarOptions, selectedAvatarOptions);
+    await handleSaveChangesMutation();
   };
+
   const handlePurchaseSingleItem = async (itemToBuy: customizationOption) =>
     await purchaseCustomizationOptions([itemToBuy]);
   const handleReset = () => dispatch({ type: "RESET" });
+
   const handleClose = () => dispatch({ type: "TOGGLE_PURCHASE_MODAL" });
 
   //If avatar is loading (fetching from supabase) or if userAvatar hasn't been created, then return loading message. This should only happen on the initial page load
@@ -259,12 +348,10 @@ function CustomizeBuddy() {
       {showPurchaseModal && (
         <PurchaseConfirmationModal
           items={unownedItems}
-          onBuyAndSave={function (): void {
-            throw new Error("Function not implemented.");
-          }}
+          onBuyAndSave={handleSaveChangesMutation}
           onDiscardItem={handleDiscardUnownedItem}
-          onDiscardAllItems={handleDiscardAllItems}
           onCancel={handleClose}
+          hasUnsavedChanges={hasUnsavedChanges}
         />
       )}
       <h1>Customize your Buddy</h1>
@@ -275,10 +362,18 @@ function CustomizeBuddy() {
 
       <div className="flex flex-col gap-1">
         {/* This button attempts to save the user changes to the database */}
-        <button className="bg-red-300" onClick={handleSaveChanges}>
+        <button
+          className={!hasUnsavedChanges ? "bg-gray-500" : "bg-red-300"}
+          onClick={handleSaveChanges}
+          disabled={!hasUnsavedChanges}
+        >
           Save Changes
         </button>
-        <button className="bg-red-300" onClick={handleReset}>
+        <button
+          className={!hasUnsavedChanges ? "bg-gray-500" : "bg-red-300"}
+          onClick={handleReset}
+          disabled={!hasUnsavedChanges}
+        >
           Reset
         </button>
       </div>

@@ -1,7 +1,8 @@
 import { customizationOption } from "../lib/types";
 import { getAllCustomizationOptions } from "./customizationOptionsService";
 import { supabase } from "./supabase";
-import { TablesInsert } from "./supabaseTypes";
+import { Enums, TablesInsert } from "./supabaseTypes";
+import { purchaseCustomizationOptions } from "./userService";
 
 export async function saveAvatar(
   avatarConfig: Record<string, unknown>,
@@ -82,8 +83,70 @@ export async function getCustomizationOptionsOwnership(userId: string) {
 export async function customizeAvatar(
   originalAvatar: customizationOption[],
   newAvatar: customizationOption[],
+  userId: string,
 ) {
-  //first, check if in the newAvatar, there are options that the user does not own
-  console.log(originalAvatar);
-  console.log(newAvatar);
+  const deactiveIds: number[] = [];
+  const activateIds: number[] = [];
+
+  //check if avatars are the same. If so, there is no need to submit a request to supabase
+  if (JSON.stringify(originalAvatar) === JSON.stringify(newAvatar)) return;
+  const originalOptionsMap = originalAvatar.reduce((map, option) => {
+    return map.set(option.category, {
+      id: option.id,
+      value: option.option_value,
+    });
+  }, new Map<Enums<"avatar_customization_categories">, { id: number; value: string }>());
+  const newOptionsMap = newAvatar.reduce((map, option) => {
+    return map.set(option.category, {
+      id: option.id,
+      value: option.option_value,
+    });
+  }, new Map<Enums<"avatar_customization_categories">, { id: number; value: string }>());
+
+  originalOptionsMap.forEach((oldValue, key) => {
+    //Making the assumption that every property in the originalAvatar exists in the newAvatar. This needs further testing
+    const newOption = newOptionsMap.get(key);
+    if (!newOption) {
+      return;
+    }
+
+    //If a difference is detected in the value for a category, deactivate the option in the oldAvatar and activate the new opton in the newAvatar.
+    if (oldValue.id !== newOption.id) {
+      deactiveIds.push(oldValue.id);
+      activateIds.push(newOption.id);
+    }
+  });
+
+  const { error } = await supabase.rpc("update_avatar_options", {
+    deactivate_ids: deactiveIds,
+    activate_ids: activateIds,
+    user_id_param: userId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+/**
+ * Function that purchases customization options if there are unowned items in the newAvatar present and saves the customization to supabase.
+ * @param originalAvatar
+ * @param newAvatar
+ * @param userId
+ * @returns
+ */
+export async function buyOptionsAndSave(
+  originalAvatar: customizationOption[],
+  newAvatar: customizationOption[],
+  userId: string,
+) {
+  const unownedItems = newAvatar.filter((option) => !option.isOwned);
+  let successMessage = "Successfully saved changes";
+  if (unownedItems.length > 0) {
+    //First, buy all items in the cart, if there are any.
+    await purchaseCustomizationOptions(unownedItems, userId);
+    successMessage = "Successfully purchased and saved changes";
+  }
+  await customizeAvatar(originalAvatar, newAvatar, userId);
+  return successMessage;
 }
