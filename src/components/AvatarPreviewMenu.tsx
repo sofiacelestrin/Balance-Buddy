@@ -71,6 +71,7 @@ function AvatarPreviewMenu({
     : [];
 
   const isNonCustomizable = detectNonCustomizableCategory(avatarPreviews);
+  const sortedAvatarOptions = avatarPreviews.sort((a, b) => a.id - b.id);
 
   return (
     <div className="w-full">
@@ -91,7 +92,7 @@ function AvatarPreviewMenu({
 
       <ul className="flex flex-wrap justify-center gap-2">
         {!isNonCustomizable ? (
-          avatarPreviews.map((avatar) => (
+          sortedAvatarOptions.map((avatar) => (
             <AvatarCard
               key={avatar.id}
               avatar={avatar}

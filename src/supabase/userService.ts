@@ -8,7 +8,7 @@ export async function purchaseCustomizationOptions(
   const totalPrice = cart.reduce((sum, option) => sum + option.price, 0);
 
   // Atomic transaction
-  const { data, error } = await supabase.rpc("purchase_customization_options", {
+  const { error } = await supabase.rpc("purchase_customization_options", {
     user_id_param: userId,
     total_price: totalPrice,
     cart_items: cart.map((option) => ({
@@ -21,7 +21,7 @@ export async function purchaseCustomizationOptions(
     throw new Error(`Transaction failed: ${error.message}`);
   }
 
-  return data;
+  return cart.map((option) => option.id);
 }
 
 export async function getUserCoinBalance(userId: string) {

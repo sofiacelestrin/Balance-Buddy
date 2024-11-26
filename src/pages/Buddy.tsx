@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabase/supabase";
 import { createAvatar, Result } from "@dicebear/core";
 import { avataaars } from "@dicebear/collection";
+import createAvatarFromOptions from "../util/createAvatar";
 
 function Buddy({ avatarOptions, isLoadingAvatar }) {
   const [meters, setMeters] = useState({
@@ -20,34 +21,17 @@ function Buddy({ avatarOptions, isLoadingAvatar }) {
 
   // Create Avatar
   if (!isLoadingAvatar) {
-    userAvatar = createAvatar(avataaars, {
-      accessories: [`${avatarOptions.accessories}`],
-      backgroundColor: [avatarOptions.backgroundColor.slice(1)],
-      accessoriesProbability: avatarOptions.accessories ? 100 : 0,
-      accessoriesColor: [avatarOptions.accessoriesColor.slice(1)],
-      clothesColor: [avatarOptions.clothesColor.slice(1)],
-      clothing: [`${avatarOptions.clothing}`],
-      clothingGraphic: [`${avatarOptions.clothingGraphic}`],
-      eyebrows: [`${avatarOptions.eyebrows}`],
-      eyes: [`${avatarOptions.eyes}`],
-      facialHair: [`${avatarOptions.facialHair}`],
-      facialHairProbability: avatarOptions.facialHair ? 100 : 0,
-      facialHairColor: [`${avatarOptions.facialHairColor}`],
-      hairColor: [avatarOptions.hairColor.slice(1)],
-      hatColor: [avatarOptions.hatColor.slice(1)],
-      mouth: [`${avatarOptions.mouth}`],
-      nose: [`${avatarOptions.nose}`],
-      skinColor: [avatarOptions.skinColor.slice(1)],
-      top: [`${avatarOptions.top}`],
-      topProbability: avatarOptions.top ? 100 : 0,
-    });
+    userAvatar = createAvatarFromOptions(avatarOptions);
   }
 
   // Fetch user ID
   useEffect(() => {
     const fetchUserId = async () => {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
         if (sessionError) throw sessionError;
         if (!session) {
           setError("User not authenticated.");
@@ -93,21 +77,22 @@ function Buddy({ avatarOptions, isLoadingAvatar }) {
 
     const channel = supabase.channel(`meters:user_id=eq.${userId}`);
 
-    channel.on('postgres_changes', 
-      { event: 'UPDATE', schema: 'public', table: 'meters' },
+    channel.on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "meters" },
       (payload) => {
         console.log("Real-time update received:", payload);
 
         // Destructure the payload to exclude user_id and only update the meters values
-        const { user_id, ...meterData } = payload.new;  // Remove user_id from the data
-        setMeters(meterData);  // Update the meters state with the filtered data
-      }
+        const { user_id, ...meterData } = payload.new; // Remove user_id from the data
+        setMeters(meterData); // Update the meters state with the filtered data
+      },
     );
 
     // Subscribe to the channel
     channel.subscribe((status) => {
       console.log("Subscription status: ", status); // Log subscription status
-      if (status === 'SUBSCRIBED') {
+      if (status === "SUBSCRIBED") {
         console.log("Successfully subscribed to changes.");
       }
     });
@@ -122,10 +107,10 @@ function Buddy({ avatarOptions, isLoadingAvatar }) {
 
   // Fixed order for displaying the meters
   const orderedCategories = [
-    "health", 
-    "self_actualization", 
-    "happiness", 
-    "social_connection"
+    "health",
+    "self_actualization",
+    "happiness",
+    "social_connection",
   ];
 
   return (
@@ -142,20 +127,22 @@ function Buddy({ avatarOptions, isLoadingAvatar }) {
       <div className="mt-4 flex flex-col items-center">
         {/* Meters */}
         {orderedCategories.map((category) => {
-          const value = meters[category] || 0;  // Fallback to 0 if no value is found
+          const value = meters[category] || 0; // Fallback to 0 if no value is found
           return (
             <div className="mb-2 w-full max-w-xs" key={category}>
-              <h3 className="text-lg font-semibold">{formatCategoryName(category)}</h3>
+              <h3 className="text-lg font-semibold">
+                {formatCategoryName(category)}
+              </h3>
               <div className="h-2 w-full rounded-full bg-gray-200">
                 <div
                   className={`h-2 rounded-full ${
                     category === "health"
                       ? "bg-green-500"
                       : category === "self_actualization"
-                      ? "bg-purple-500"
-                      : category === "happiness"
-                      ? "bg-blue-500"
-                      : "bg-red-500"
+                        ? "bg-purple-500"
+                        : category === "happiness"
+                          ? "bg-blue-500"
+                          : "bg-red-500"
                   }`}
                   style={{ width: `${value}%` }}
                 ></div>

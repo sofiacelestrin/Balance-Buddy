@@ -47,11 +47,13 @@ export async function getCustomizationOptionsByCategoryWithOwnership(
     );
   }
 
-  return data?.map((option) => ({
+  const parsedAndSortedData = data?.map((option) => ({
     category: option.category,
     price: option.price,
     option_value: option.option_value,
     id: option.id,
     isOwned: option.isowned,
   }));
+
+  return parsedAndSortedData;
 }

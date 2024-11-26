@@ -43,7 +43,8 @@ type Action =
   | { type: "REMOVE_UNOWNED_ITEM"; payload: customizationOption }
   | { type: "RESET" }
   | { type: "DISCARD_ALL_UNOWNED_ITEMS" }
-  | { type: "AFTER_SAVE_CHANGES" };
+  | { type: "AFTER_SAVE_CHANGES" }
+  | { type: "PURCHASE_SINGLE_ITEM"; payload: number };
 
 const initialState: CustomizeBuddyState = {
   selectedCategory: "accessories",
@@ -68,7 +69,6 @@ function reducer(
       return { ...state, selectedCategory: action.payload };
     case "EQUIP_ITEM": {
       const itemToEquip: customizationOption = action.payload;
-
       return {
         ...state,
         selectedAvatarOptions: state.selectedAvatarOptions.map((option) =>
@@ -103,7 +103,7 @@ function reducer(
       );
       const hasUnsavedChanges = !isEqual(
         state.originalAvatarOptions,
-        state.selectedAvatarOptions,
+        newSelectedAvataOptions,
       );
 
       return {
@@ -135,6 +135,18 @@ function reducer(
       );
 
       return { ...state, selectedAvatarOptions: filteredSelectedAvatar };
+    }
+    case "PURCHASE_SINGLE_ITEM": {
+      const idOfItemPurchased = action.payload;
+
+      return {
+        ...state,
+        selectedAvatarOptions: state.selectedAvatarOptions.map((option) =>
+          option.id === idOfItemPurchased
+            ? { ...option, isOwned: true }
+            : option,
+        ),
+      };
     }
     case "AFTER_SAVE_CHANGES":
       return {
@@ -205,10 +217,11 @@ function CustomizeBuddy() {
   //This mutation function can be used to purchase an individual option or multiple options if the PurchaseModalWindow is open
   const { mutateAsync: purchaseCustomizationOptions } = useMutation({
     mutationFn: async (cartItems: customizationOption[]) => {
-      await purchaseCustomizationOptionsSupabase(
+      return await purchaseCustomizationOptionsSupabase(
         cartItems,
         session?.user.id as string,
       );
+      //bug. After purchasing option, this does not get updated in selectedAvatarOptions
     },
     onMutate: (cartItems) => {
       const totalCost = cartItems.reduce((sum, item) => sum + item.price, 0);
@@ -219,8 +232,19 @@ function CustomizeBuddy() {
       }
       toast.loading("Loading...");
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.remove();
+
+      const itemPurchasedId = data[0];
+      //If the item purchased is an element of selectedAvatarOptions, then it needs to be updated so that the application knows that this option has been purchased.
+      if (
+        selectedAvatarOptions.find((option) => option.id === itemPurchasedId)
+      ) {
+        //dispatch update of selectedAvatar options
+
+        dispatch({ type: "PURCHASE_SINGLE_ITEM", payload: itemPurchasedId });
+      }
+
       queryClient.invalidateQueries([
         "coin_balance",
         "category_values",
