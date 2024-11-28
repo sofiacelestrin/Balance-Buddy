@@ -221,7 +221,6 @@ function CustomizeBuddy() {
         cartItems,
         session?.user.id as string,
       );
-      //bug. After purchasing option, this does not get updated in selectedAvatarOptions
     },
     onMutate: (cartItems) => {
       const totalCost = cartItems.reduce((sum, item) => sum + item.price, 0);
@@ -233,7 +232,7 @@ function CustomizeBuddy() {
       toast.loading("Loading...");
     },
     onSuccess: (data) => {
-      toast.remove();
+      toast.dismiss();
 
       const itemPurchasedId = data[0];
       //If the item purchased is an element of selectedAvatarOptions, then it needs to be updated so that the application knows that this option has been purchased.
@@ -241,10 +240,8 @@ function CustomizeBuddy() {
         selectedAvatarOptions.find((option) => option.id === itemPurchasedId)
       ) {
         //dispatch update of selectedAvatar options
-
         dispatch({ type: "PURCHASE_SINGLE_ITEM", payload: itemPurchasedId });
       }
-
       queryClient.invalidateQueries([
         "coin_balance",
         "category_values",
@@ -252,7 +249,7 @@ function CustomizeBuddy() {
       toast.success("Succesfully Made Purchase");
     },
     onError: (error) => {
-      toast.remove();
+      toast.dismiss();
       toast.error(error.message);
     },
     networkMode: "always",
@@ -279,7 +276,7 @@ function CustomizeBuddy() {
       toast.loading("Saving...");
     },
     onSuccess: (data) => {
-      toast.remove();
+      toast.dismiss();
       dispatch({ type: "AFTER_SAVE_CHANGES" });
 
       //if the purchase modal was openened when handleSaveChangesMutation function was executed, then a purchase was made

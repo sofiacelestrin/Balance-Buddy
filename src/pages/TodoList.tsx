@@ -1,6 +1,10 @@
-import { useState, useEffect } from "react";
-import { supabase } from "../supabase/supabase";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom"; // Import Link
+import { supabase } from "../supabase/supabase";
+import { useSession } from "../contexts/SessionContext";
+import { InvalidateQueryFilters, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { twMerge } from "tailwind-merge";
 
 enum Category {
   Happiness = "happiness",
@@ -20,8 +24,11 @@ type Task = {
 };
 
 const calculateStandardDeviation = (meterValues: number[]): number => {
-  const mean = meterValues.reduce((acc, value) => acc + value, 0) / meterValues.length;
-  const variance = meterValues.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) / meterValues.length;
+  const mean =
+    meterValues.reduce((acc, value) => acc + value, 0) / meterValues.length;
+  const variance =
+    meterValues.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) /
+    meterValues.length;
   return Math.sqrt(variance);
 };
 
@@ -49,7 +56,9 @@ function TodoList() {
   const [filter, setFilter] = useState<"all" | "completed" | "uncompleted">(
     "all",
   ); // Filter state to control showing all tasks or only completed tasks
-
+  const { session } = useSession();
+  const [isBackdropActive, setIsBackdropActive] = useState(false);
+  const queryClient = useQueryClient();
   // Fetch tasks from Supabase for the current user
   useEffect(() => {
     async function fetchTasks() {
@@ -57,26 +66,14 @@ function TodoList() {
         setLoading(true);
 
         // Get the current user's ID from the session
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
 
-        if (sessionError) throw sessionError;
-
-        if (!session) {
-          console.error("User session not found.");
-          setError("User not authenticated.");
-          return;
-        }
-
-        const userId = session.user.id;
+        const userId = session?.user.id;
 
         // Fetch tasks filtered by user_id
         const { data, error } = await supabase
           .from("tasks")
           .select("*")
-          .eq("user_id", userId);
+          .eq("user_id", userId as string);
 
         console.log("Fetched tasks:", data);
 
@@ -98,150 +95,193 @@ function TodoList() {
 
   // Toggle completion
   // Toggle completion
-async function toggleCompletion(id: number) {
-  const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
+  async function toggleCompletion(id: number) {
+    setIsBackdropActive(true);
+    const choiceConfirmed = await new Promise<boolean>((resolve) => {
+      toast(
+        (t) => (
+          <div className="rounded bg-white p-4">
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                resolve(false); // User clicked "No"
+              }}
+              className="absolute right-2 top-2 text-gray-500"
+            >
+              ✖
+            </button>
+            <p className="mb-4">
+              Do you wish to mark this task as complete? You won't be able to
+              undo this change!
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  resolve(true); // User clicked "Yes"
+                }}
+                className="rounded-md bg-green-400 px-4 py-2 text-white"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  resolve(false); // User clicked "No"
+                }}
+                className="rounded-md bg-red-400 px-4 py-2 text-white"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        ),
+        { duration: Infinity },
+      );
+    });
+    setIsBackdropActive(false);
 
-  if (sessionError) throw sessionError;
+    if (!choiceConfirmed) return;
 
-  if (!session) {
-    console.error("User session not found.");
-    setError("User not authenticated.");
-    isPending = false; // Reset the flag on error
-    return;
-  }
+    const userId = session?.user.id;
 
-  const userId = session.user.id;
-
-  const updatedTask = tasks.find((task) => task.id === id);
-  if (!updatedTask) {
-    isPending = false; // Reset the flag if no task is found
-    return;
-  }
-
-  const { category, complexity } = updatedTask;
-
-  try {
-    // Fetch all meter categories for this user
-    const { data: allMeterData, error: allMeterFetchError } = await supabase
-      .from("meters")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
-
-    if (allMeterFetchError) throw allMeterFetchError;
-
-    // Fetch the current coin balance
-    const { data: currentUserData, error: userFetchError } = await supabase
-      .from("users")
-      .select("coin_balance")
-      .eq("id", userId)
-      .single();
-
-    if (userFetchError) throw userFetchError;
-
-    let totalCombinedMeter = 0;
-
-    // Add all categories to totalCombinedMeter
-    if (allMeterData) {
-      if ('health' in allMeterData) totalCombinedMeter += allMeterData.health;
-      if ('happiness' in allMeterData) totalCombinedMeter += allMeterData.happiness;
-      if ('self_actualization' in allMeterData) totalCombinedMeter += allMeterData.self_actualization;
-      if ('social_connection' in allMeterData) totalCombinedMeter += allMeterData.social_connection;
+    const updatedTask = tasks.find((task) => task.id === id);
+    if (!updatedTask) {
+      isPending = false; // Reset the flag if no task is found
+      return;
     }
 
-    console.log("Total Combined Meter: ", totalCombinedMeter);
+    const { category, complexity } = updatedTask;
 
-    // Calculate the base coin gain
-    const baseCoinGain = updatedTask.completed ? -complexity : complexity;
+    try {
+      // Fetch all meter categories for this user
+      const { data: allMeterData, error: allMeterFetchError } = await supabase
+        .from("meters")
+        .select("*")
+        .eq("user_id", userId as string)
+        .single();
 
-    // Multiply base coin gain by the total combined meter value / 100
-    const coinGain = baseCoinGain * (totalCombinedMeter / 100);
+      if (allMeterFetchError) throw allMeterFetchError;
 
-    // Round the final coin balance
-    const newCoinBalance = Math.round(
-      (currentUserData?.coin_balance || 0) + coinGain
-    );
+      // Fetch the current coin balance
+      const { data: currentUserData, error: userFetchError } = await supabase
+        .from("users")
+        .select("coin_balance")
+        .eq("id", userId as string)
+        .single();
 
-    if (newCoinBalance < 0) {
-      console.error("Insufficient coins to complete this operation.");
-      throw new Error("Insufficient coins.");
+      if (userFetchError) throw userFetchError;
+
+      let totalCombinedMeter = 0;
+
+      // Add all categories to totalCombinedMeter
+      if (allMeterData) {
+        if ("health" in allMeterData) totalCombinedMeter += allMeterData.health;
+        if ("happiness" in allMeterData)
+          totalCombinedMeter += allMeterData.happiness;
+        if ("self_actualization" in allMeterData)
+          totalCombinedMeter += allMeterData.self_actualization;
+        if ("social_connection" in allMeterData)
+          totalCombinedMeter += allMeterData.social_connection;
+      }
+
+      console.log("Total Combined Meter: ", totalCombinedMeter);
+
+      // Calculate the base coin gain
+      const baseCoinGain = updatedTask.completed ? -complexity : complexity;
+
+      // Multiply base coin gain by the total combined meter value / 100
+      const coinGain = baseCoinGain * (totalCombinedMeter / 100);
+
+      // Round the final coin balance
+      const newCoinBalance = Math.round(
+        (currentUserData?.coin_balance || 0) + coinGain,
+      );
+
+      if (newCoinBalance < 0) {
+        console.error("Insufficient coins to complete this operation.");
+        throw new Error("Insufficient coins.");
+      }
+
+      // Update the coin balance
+      const { error: coinUpdateError } = await supabase
+        .from("users")
+        .update({ coin_balance: newCoinBalance })
+        .eq("id", userId as string);
+
+      if (coinUpdateError) throw coinUpdateError;
+      //Revalite the coin_balance cache if the coin update is successful
+      queryClient.invalidateQueries(["coin_balance"] as InvalidateQueryFilters);
+
+      // Fetch the current meter value only after the coin is updated
+      const { data: currentMeterData, error: meterFetchError } = await supabase
+        .from("meters")
+        .select(`${category}`)
+        .eq("user_id", userId as string)
+        .single();
+
+      if (meterFetchError) throw meterFetchError;
+
+      // Calculate the new meter value based on task completion status (decrease if uncheck, increase if check)
+      const meterValues = [];
+      if ("health" in allMeterData) meterValues.push(allMeterData.health);
+      if ("happiness" in allMeterData) meterValues.push(allMeterData.happiness);
+      if ("self_actualization" in allMeterData)
+        meterValues.push(allMeterData.self_actualization);
+      if ("social_connection" in allMeterData)
+        meterValues.push(allMeterData.social_connection);
+
+      // Calculate the standard deviation of meter values
+      const stddev = calculateStandardDeviation(meterValues);
+
+      // Calculate the meter gain multiplier using 1 + (50 - stddev) / 15
+      const meterGainMultiplier = 1 + (50 - stddev) / 15;
+
+      // Adjust complexity based on whether task is being checked or unchecked
+      const adjustedComplexity = updatedTask.completed
+        ? -complexity
+        : complexity;
+
+      // Apply the adjusted complexity and multiplier to calculate the new meter value
+      const newMeterValue = Math.round(
+        Math.max(
+          0,
+          Math.min(
+            100,
+            currentMeterData[category] +
+              adjustedComplexity * meterGainMultiplier,
+          ),
+        ),
+      );
+
+      // Update the meter
+      const { error: meterError } = await supabase
+        .from("meters")
+        .update({ [category]: newMeterValue })
+        .eq("user_id", userId as string);
+
+      if (meterError) throw meterError;
+
+      // Update the task completion status now that coins and meter are updated
+      const { error: taskError } = await supabase
+        .from("tasks")
+        .update({ completed: !updatedTask.completed })
+        .eq("id", id);
+
+      if (taskError) throw taskError;
+
+      // Update local state to reflect task completion toggle
+      setTasks(
+        tasks.map((task) =>
+          task.id === id ? { ...task, completed: !task.completed } : task,
+        ),
+      );
+      setErrorMessage("");
+    } catch (err) {
+      console.error("Error updating task, meter, or coin balance:", err);
+      setErrorMessage("Insufficient coin balance to uncheck task.");
     }
-
-    // Update the coin balance
-    const { error: coinUpdateError } = await supabase
-      .from("users")
-      .update({ coin_balance: newCoinBalance })
-      .eq("id", userId);
-
-    if (coinUpdateError) throw coinUpdateError;
-
-    // Fetch the current meter value only after the coin is updated
-    const { data: currentMeterData, error: meterFetchError } = await supabase
-      .from("meters")
-      .select(`${category}`)
-      .eq("user_id", userId)
-      .single();
-
-    if (meterFetchError) throw meterFetchError;
-
-    // Calculate the new meter value based on task completion status (decrease if uncheck, increase if check)
-    const meterValues = [];
-    if ('health' in allMeterData) meterValues.push(allMeterData.health);
-    if ('happiness' in allMeterData) meterValues.push(allMeterData.happiness);
-    if ('self_actualization' in allMeterData) meterValues.push(allMeterData.self_actualization);
-    if ('social_connection' in allMeterData) meterValues.push(allMeterData.social_connection);
-
-    // Calculate the standard deviation of meter values
-    const stddev = calculateStandardDeviation(meterValues);
-
-    // Calculate the meter gain multiplier using 1 + (50 - stddev) / 15
-    const meterGainMultiplier = 1 + (50 - stddev) / 15;
-
-    // Adjust complexity based on whether task is being checked or unchecked
-    const adjustedComplexity = updatedTask.completed ? -complexity : complexity;
-
-    // Apply the adjusted complexity and multiplier to calculate the new meter value
-    const newMeterValue = Math.round(
-      Math.max(
-        0,
-        Math.min(
-          100,
-          currentMeterData[category] + adjustedComplexity * meterGainMultiplier
-        )
-      )
-    );
-
-    // Update the meter
-    const { error: meterError } = await supabase
-      .from("meters")
-      .update({ [category]: newMeterValue })
-      .eq("user_id", userId);
-
-    if (meterError) throw meterError;
-
-    // Update the task completion status now that coins and meter are updated
-    const { error: taskError } = await supabase
-      .from("tasks")
-      .update({ completed: !updatedTask.completed })
-      .eq("id", id);
-
-    if (taskError) throw taskError;
-
-    // Update local state to reflect task completion toggle
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
-    setErrorMessage("");
-  } catch (err) {
-    console.error("Error updating task, meter, or coin balance:", err);
-    setErrorMessage("Insufficient coin balance to uncheck task.");
   }
-}
 
   // Delete task
   async function deleteTask(id: number) {
@@ -267,11 +307,18 @@ async function toggleCompletion(id: number) {
 
   return (
     <div className="mx-auto max-w-lg rounded bg-white p-6 shadow-lg">
+      {/* Backdrop is active only when the user wants to mark a task as complete */}
+      {isBackdropActive && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-10 backdrop-blur-sm"></div>
+      )}
       <h1 className="mb-4 text-2xl font-bold">Your Todos</h1>
 
       {/* Show error message if any */}
       {errorMessage && (
-        <div className="error-message" style={{ color: "red", margin: "10px 0" }}>
+        <div
+          className="error-message"
+          style={{ color: "red", margin: "10px 0" }}
+        >
           {errorMessage}
         </div>
       )}
@@ -310,6 +357,7 @@ async function toggleCompletion(id: number) {
                 checked={task.completed}
                 onChange={() => toggleCompletion(task.id)}
                 className="h-5 w-5"
+                disabled={task.completed}
               />
               <span
                 className={`${
@@ -321,7 +369,7 @@ async function toggleCompletion(id: number) {
             </div>
             <span className="text-sm">{task.due}</span>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-between">
             <span
               className={`rounded px-2 py-1 text-xs font-semibold text-white ${
                 task.category === Category.Happiness
@@ -339,21 +387,28 @@ async function toggleCompletion(id: number) {
             <span className="text-sm font-semibold">
               Complexity: {task.complexity}/5
             </span>
-            {/* Edit Button */}
-            <Link
-              to="/edit-task"
-              state={{ task }} // Pass task data to the AddTask page
-              className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
-            >
-              Edit
-            </Link>
-            {/* Delete Button */}
-            <button
-              onClick={() => deleteTask(task.id)}
-              className="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
-            >
-              Delete
-            </button>
+
+            {!task.completed && (
+              <div className="flex flex-col gap-1">
+                {/* Edit Button */}
+                <Link
+                  to={"/edit-task"}
+                  state={{ task }} // Pass task data to the AddTask page
+                  className={twMerge(
+                    "block rounded bg-yellow-500 p-2 text-center text-sm text-white hover:bg-yellow-600",
+                  )}
+                >
+                  Edit
+                </Link>
+                {/* Delete Button */}
+                <button
+                  onClick={() => deleteTask(task.id)}
+                  className="rounded bg-red-500 p-2 text-center text-sm text-white hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ))}
