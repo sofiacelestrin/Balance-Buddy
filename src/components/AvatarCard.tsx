@@ -25,7 +25,7 @@ function AvatarCard({ avatar, onEquip, onPurchaseItem }: AvatarCardProps) {
       )}
     >
       <img src={avatar.avatar} className="w-24" alt={avatar.alt} />
-      <div className="flex flex-grow flex-col justify-center bg-red-200">
+      <div className="flex flex-grow flex-col justify-center bg-blue-200">
         {/* Buy button only displays for items not owned by the user */}
         {!avatar.isOwned && <button onClick={handlePurchaseOfItem}>Buy</button>}
         {/* Equip button should appear only for unequipped items. */}
