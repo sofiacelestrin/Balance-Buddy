@@ -6,7 +6,7 @@ export const customizationCategories: Record<
 > = {
   backgroundColor: "Background Color",
   top: "Hair Style",
-  hatColor: "Headwear Color",
+  hairColor: "Hair Color",
   facialHair: "Facial Hair",
   eyebrows: "Brows",
   eyes: "Eyes",
@@ -15,9 +15,9 @@ export const customizationCategories: Record<
   accessories: "Eyewear",
   accessoriesColor: "Eyewear Color",
   clothing: "Outfit",
+  clothingGraphic: "Outfit Design",
   clothesColor: "Outfit Color",
-  // clothingGraphic: "Outfit Design",
   // facialHairColor: "Facial Hair Color",
-  // hairColor: "Hair Color",
+  // hatColor: "Headwear Color",
 
 };
