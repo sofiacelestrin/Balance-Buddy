@@ -28,6 +28,7 @@ function HomeSidebar({
         ×
       </button>
       <div className="flex flex-col whitespace-nowrap pt-20 text-xl font-bold space-y-4">
+        <Link to="/dashboard">Dashboard</Link>
         <Link to="/customize-buddy">Customize Buddy</Link>
         <Link to="/add-task">Add Task</Link>
         <Link to="/journal">Journal</Link>
