@@ -384,89 +384,90 @@ function CustomizeBuddy() {
   if (isLoadingAvatar || !userAvatar) return <div>Loading...</div>;
 
   return (
-<>
-<header className="bg-blue-600 p-4 text-white">
-        <div className="flex items-center justify-between">
-          {/* Left Section: Logo and Title */}
-          <div className="flex items-center">
-            <img
-              src="/src/1logo.svg"
-              alt="Company Logo"
-              className="mr-4 h-12 w-auto"
-            />
-            <div className="text-4xl font-bold">Balance Buddy</div>
-          </div>
-
-          {/* Right Section: Coin Balance and Sidebar Button */}
-          <div className="flex items-center">
-            <img
-              src="/src/coin.svg"
-              alt="Coin Image"
-              className="mr-2 h-12 w-auto"
-            />
-            <div className="mr-6 text-4xl font-bold">
-              {coinBalance ?? "Loading..."}
+      <>
+        <header className="bg-blue-600 p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <img
+                src="/src/1logo.svg"
+                alt="Company Logo"
+                className="mr-4 h-12 w-auto"
+              />
+              <div className="text-4xl font-bold">Balance Buddy</div>
             </div>
-            <button
-              onClick={handleSidebarToggle}
-              className="flex items-center justify-center"
-            >
-              <HamburgerBars className="h-12 w-12 stroke-[4] text-white" />
-            </button>
+            <div className="flex items-center">
+              <img
+                src="/src/coin.svg"
+                alt="Coin Image"
+                className="mr-2 h-12 w-auto"
+              />
+              <div className="mr-6 text-4xl font-bold">
+                {coinBalance ?? "Loading..."}
+              </div>
+              <button
+                onClick={handleSidebarToggle}
+                className="flex items-center justify-center"
+              >
+                <HamburgerBars className="h-12 w-12 stroke-[4] text-white" />
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
-      <HomeSidebar
+        </header>
+        <HomeSidebar
           className={isSidebarOpen ? "w-56" : "w-0 overflow-x-hidden"}
           onClose={handleSidebarClose}
         />
         {isSidebarOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-10 backdrop-blur-sm"></div>
         )}
-    <div className="relative mx-auto min-h-screen max-w-[960px]">
-      {showPurchaseModal && (
-        <PurchaseConfirmationModal
-          items={unownedItems}
-          onBuyAndSave={handleSaveChangesMutation}
-          onDiscardItem={handleDiscardUnownedItem}
-          onCancel={handleClose}
-          hasUnsavedChanges={hasUnsavedChanges}
-        />
-      )}
-      <h1>Customize your Buddy</h1>
-      <p>{coin_balance}</p>
-      <div className="flex flex-col items-center justify-center">
-        <img src={userAvatar.toDataUri()} alt="User avatar" className="w-72" />
-      </div>
+    
+        <div className="relative mx-auto min-h-screen max-w-[960px] flex flex-col justify-between">
+          {showPurchaseModal && (
+            <PurchaseConfirmationModal
+              items={unownedItems}
+              onBuyAndSave={handleSaveChangesMutation}
+              onDiscardItem={handleDiscardUnownedItem}
+              onCancel={handleClose}
+              hasUnsavedChanges={hasUnsavedChanges}
+            />
+          )}
+    
+          <h1 className="mb-6 text-4xl font-bold">Customize Your Buddy</h1>
+    
+          <div className="flex flex-col items-center justify-center">
+            <img src={userAvatar.toDataUri()} alt="User avatar" className="w-72" />
+          </div>
+    
+          <AvatarPreviewMenu
+            onSelectCategory={handleSelectCategory}
+            categoryValues={categoryValues as customizationOption[]}
+            userAvatar={selectedAvatarOptions}
+            selectedCategory={selectedCategory}
+            onEquip={handleEquip}
+            onPurchaseItem={handlePurchaseSingleItem}
+          />
+    
+    <div className="flex flex-col gap-1 mb-4">
+  <button
+    className="w-full rounded bg-blue-500 py-2 text-white text-xl hover:bg-blue-600 font-semibold"
+    onClick={handleSaveChanges}
+    disabled={!hasUnsavedChanges}
+  >
+    Save Changes
+  </button>
+  <button
+    className="w-full rounded bg-blue-500 py-2 text-white text-xl hover:bg-blue-600 font-semibold"
+    onClick={handleReset}
+    disabled={!hasUnsavedChanges}
+  >
+    Reset
+  </button>
+</div>
 
-      <div className="flex flex-col gap-1">
-        {/* This button attempts to save the user changes to the database */}
-        <button
-          className={!hasUnsavedChanges ? "bg-gray-500" : "bg-red-300"}
-          onClick={handleSaveChanges}
-          disabled={!hasUnsavedChanges}
-        >
-          Save Changes
-        </button>
-        <button
-          className={!hasUnsavedChanges ? "bg-gray-500" : "bg-red-300"}
-          onClick={handleReset}
-          disabled={!hasUnsavedChanges}
-        >
-          Reset
-        </button>
-      </div>
-      <AvatarPreviewMenu
-        onSelectCategory={handleSelectCategory}
-        categoryValues={categoryValues as customizationOption[]}
-        userAvatar={selectedAvatarOptions}
-        selectedCategory={selectedCategory}
-        onEquip={handleEquip}
-        onPurchaseItem={handlePurchaseSingleItem}
-      />
-    </div>
-    </>
-  );
+        </div>
+      </>
+    );
+    
 }
 
 export default CustomizeBuddy;
