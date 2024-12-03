@@ -5,6 +5,7 @@ import { getUserInfo } from "../supabase/userService";
 import { avatarOptions } from "../util/createAvatar";
 import Buddy from "./Buddy"; // Import Buddy component
 import TodoList from "./TodoList";
+import { Link } from "react-router-dom";
 
 function Dashboard() {
   const { session } = useSession();
