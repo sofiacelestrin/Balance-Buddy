@@ -8,6 +8,7 @@ import { getUserCoinBalance } from "../supabase/userService";
 import { avatarOptions } from "../util/createAvatar";
 import Buddy from "./Buddy"; // Import Buddy component
 import TodoList from "./TodoList";
+import { Link } from "react-router-dom";
 
 function Dashboard() {
   const { session } = useSession();
@@ -106,9 +107,36 @@ function Dashboard() {
 
           {/* Messages */}
           <div className="col-span-1 rounded bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-2xl font-bold">Messages</h2>
-            <p>No new messages.</p>
-          </div>
+  <h2 className="mb-6 text-2xl font-bold text-gray-800">Customize Your Buddy</h2>
+  <p className="text-gray-600 mb-4">
+    Good job balancing! You have a total of
+  </p>
+
+  <div className="flex items-center mb-6">
+    <img
+      src="/src/coin.svg"
+      alt="Coin Image"
+      className="mr-3 h-12 w-auto"
+    />
+    <div className="text-4xl font-bold text-gray-800">
+      {coinBalance ?? "Loading..."} coins
+    </div>
+  </div>
+
+  <p className="text-gray-600 mb-6">
+    Use these coins to customize your buddy in the shop!
+  </p>
+
+  <div className="flex justify-center">
+    <Link to="/customize-buddy">
+      <button className="rounded bg-green-500 px-6 py-3 text-white hover:bg-green-600">
+        Customize Your Buddy
+      </button>
+    </Link>
+  </div>
+</div>
+
+
         </main>
       </div>
     </>

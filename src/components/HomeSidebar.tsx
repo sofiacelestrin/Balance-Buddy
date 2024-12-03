@@ -31,7 +31,7 @@ function HomeSidebar({
         <Link to="/dashboard">Dashboard</Link>
         <Link to="/customize-buddy">Customize Buddy</Link>
         <Link to="/add-task">Add Task</Link>
-        <Link to="/journal">Journal</Link>
+
       </div>
 
 
