@@ -17,7 +17,6 @@ export const customizationCategories: Record<
   clothing: "Outfit",
   clothingGraphic: "Outfit Design",
   clothesColor: "Outfit Color",
-  // facialHairColor: "Facial Hair Color",
-  // hatColor: "Headwear Color",
-
+  facialHairColor: "Facial Hair Color",
+  hatColor: "Headwear Color",
 };

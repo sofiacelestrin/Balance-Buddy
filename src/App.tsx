@@ -1,5 +1,6 @@
-import "./index.css";
-
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Toaster } from "react-hot-toast";
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -8,29 +9,27 @@ import {
   Route,
   RouterProvider,
 } from "react-router-dom";
+import AppLayout from "./components/AppLayout";
+import { SessionProvider, useSession } from "./contexts/SessionContext";
+import "./index.css";
+import AddTask from "./pages/AddTask";
+import CharacterCreation from "./pages/CharacterCreation";
+import CustomizeBuddy from "./pages/CustomizeBuddy";
+import Dashboard from "./pages/Dashboard";
+import EditTask from "./pages/EditTask";
 import Login from "./pages/Login";
 import Registration from "./pages/Registration";
-import Dashboard from "./pages/Dashboard";
-import { SessionProvider, useSession } from "./contexts/SessionContext";
-import CharacterCreation from "./pages/CharacterCreation";
-import EditTask from "./pages/EditTask";
-import AddTask from "./pages/AddTask";
-import Journal from "./pages/Journal";
-import CustomizeBuddy from "./pages/CustomizeBuddy";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Toaster } from "react-hot-toast";
 
 function PrivateRoutes() {
   const { session, isLoading } = useSession();
-  if (isLoading) return <div className="text-3xl">Loading...</div>;
+  if (isLoading) return null;
   if (!session) return <Navigate to="/login" />;
   return <Outlet />;
 }
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <>
+    <Route element={<AppLayout />}>
       <Route index element={<Navigate to="login" replace />} />
       <Route path="login" element={<Login />} />
       <Route path="new-account" element={<Registration />} />
@@ -41,10 +40,10 @@ const router = createBrowserRouter(
 
         <Route path="add-task" element={<AddTask />} />
         <Route path="edit-task" element={<EditTask />} />
-        <Route path="journal" element={<Journal />} />
+
         <Route path="customize-buddy" element={<CustomizeBuddy />} />
       </Route>
-    </>,
+    </Route>,
   ),
 );
 

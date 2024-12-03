@@ -1,21 +1,19 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "../supabase/supabase";
-import { useQuery } from "@tanstack/react-query";
-import HomeSidebar from "../components/HomeSidebar";
-import HamburgerBars from "../components/icons/HamburgerBars";
 
 function AddTask() {
   const location = useLocation();
   const task = location.state || {};
 
-  const [taskDescription, setTaskDescription] = useState(task.description || "");
+  const [taskDescription, setTaskDescription] = useState(
+    task.description || "",
+  );
   const [taskCategory, setTaskCategory] = useState(
-    task.category || "Happiness"
+    task.category || "Happiness",
   );
   const [taskDue, setTaskDue] = useState(
-    task.due ? new Date(task.due).toISOString().split("T")[0] : "" // Default to today's date
+    task.due ? new Date(task.due).toISOString().split("T")[0] : "", // Default to today's date
   );
   const [taskComplexity, setTaskComplexity] = useState(task.complexity || 3);
   const [userId, setUserId] = useState<string | null>(null);
@@ -76,7 +74,7 @@ function AddTask() {
     }
 
     const selectedCategory = categories.find(
-      (cat) => cat.displayName === taskCategory
+      (cat) => cat.displayName === taskCategory,
     )?.value;
 
     if (!selectedCategory) {
@@ -107,61 +105,11 @@ function AddTask() {
       console.error("Error adding task:", err);
       setError("Error adding task. Please try again.");
     }
-
   };
-
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { data: coinBalance } = useQuery({
-    queryKey: ["coin_balance"],
-    queryFn: async () => await getUserCoinBalance(session?.user.id as string),
-  });
-
-  const handleSidebarToggle = () => setIsSidebarOpen(true);
-  const handleSidebarClose = () => setIsSidebarOpen(false);
 
   if (loading) return <div>Loading...</div>;
 
-
   return (
-    <>
-    <header className="bg-blue-600 p-4 text-white">
-        <div className="flex items-center justify-between">
-          {/* Left Section: Logo and Title */}
-          <div className="flex items-center">
-            <img
-              src="/src/1logo.svg"
-              alt="Company Logo"
-              className="mr-4 h-12 w-auto"
-            />
-            <div className="text-4xl font-bold">Balance Buddy</div>
-          </div>
-
-          {/* Right Section: Coin Balance and Sidebar Button */}
-          <div className="flex items-center">
-            <img
-              src="/src/coin.svg"
-              alt="Coin Image"
-              className="mr-2 h-12 w-auto"
-            />
-            <div className="mr-6 text-4xl font-bold">
-              {coinBalance ?? "Loading..."}
-            </div>
-            <button
-              onClick={handleSidebarToggle}
-              className="flex items-center justify-center"
-            >
-              <HamburgerBars className="h-12 w-12 stroke-[4] text-white" />
-            </button>
-          </div>
-        </div>
-      </header>
-      <HomeSidebar
-          className={isSidebarOpen ? "w-56" : "w-0 overflow-x-hidden"}
-          onClose={handleSidebarClose}
-        />
-        {isSidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-10 backdrop-blur-sm"></div>
-        )}
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="mb-6 text-4xl font-bold">Add Task</h1>
       <form
@@ -233,14 +181,13 @@ function AddTask() {
         </div>
         <button
           type="submit"
-          className="w-full rounded bg-blue-500 py-2 text-white text-xl hover:bg-blue-600 font-semibold"
+          className="w-full rounded bg-blue-500 py-2 text-xl font-semibold text-white hover:bg-blue-600"
         >
           Add Task
         </button>
       </form>
       {error && <p className="mt-4 text-red-500">{error}</p>}
     </div>
-    </>
   );
 }
 

@@ -1,9 +1,3 @@
-import { useState } from "react";
-import HomeSidebar from "../components/HomeSidebar";
-import HamburgerBars from "../components/icons/HamburgerBars";
-import Buddy from "./Buddy"; // Import Buddy component
-import TodoList from "./TodoList";
-
 import {
   InvalidateQueryFilters,
   useMutation,
@@ -367,107 +361,54 @@ function CustomizeBuddy() {
 
   const handleClose = () => dispatch({ type: "TOGGLE_PURCHASE_MODAL" });
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { data: coinBalance } = useQuery({
-    queryKey: ["coin_balance"],
-    queryFn: async () => await getUserCoinBalance(session?.user.id as string),
-  });
-
-  const handleSidebarToggle = () => setIsSidebarOpen(true);
-  const handleSidebarClose = () => setIsSidebarOpen(false);
-
-
-
-
-
   //If avatar is loading (fetching from supabase) or if userAvatar hasn't been created, then return loading message. This should only happen on the initial page load
   if (isLoadingAvatar || !userAvatar) return <div>Loading...</div>;
 
   return (
-      <>
-        <header className="bg-blue-600 p-4 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <img
-                src="/src/1logo.svg"
-                alt="Company Logo"
-                className="mr-4 h-12 w-auto"
-              />
-              <div className="text-4xl font-bold">Balance Buddy</div>
-            </div>
-            <div className="flex items-center">
-              <img
-                src="/src/coin.svg"
-                alt="Coin Image"
-                className="mr-2 h-12 w-auto"
-              />
-              <div className="mr-6 text-4xl font-bold">
-                {coinBalance ?? "Loading..."}
-              </div>
-              <button
-                onClick={handleSidebarToggle}
-                className="flex items-center justify-center"
-              >
-                <HamburgerBars className="h-12 w-12 stroke-[4] text-white" />
-              </button>
-            </div>
-          </div>
-        </header>
-        <HomeSidebar
-          className={isSidebarOpen ? "w-56" : "w-0 overflow-x-hidden"}
-          onClose={handleSidebarClose}
+    <div className="relative mx-auto flex min-h-screen max-w-[960px] flex-col justify-between">
+      {showPurchaseModal && (
+        <PurchaseConfirmationModal
+          items={unownedItems}
+          onBuyAndSave={handleSaveChangesMutation}
+          onDiscardItem={handleDiscardUnownedItem}
+          onCancel={handleClose}
+          hasUnsavedChanges={hasUnsavedChanges}
         />
-        {isSidebarOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-10 backdrop-blur-sm"></div>
-        )}
-    
-        <div className="relative mx-auto min-h-screen max-w-[960px] flex flex-col justify-between">
-          {showPurchaseModal && (
-            <PurchaseConfirmationModal
-              items={unownedItems}
-              onBuyAndSave={handleSaveChangesMutation}
-              onDiscardItem={handleDiscardUnownedItem}
-              onCancel={handleClose}
-              hasUnsavedChanges={hasUnsavedChanges}
-            />
-          )}
-    
-          <h1 className="mb-6 text-4xl font-bold">Customize Your Buddy</h1>
-    
-          <div className="flex flex-col items-center justify-center">
-            <img src={userAvatar.toDataUri()} alt="User avatar" className="w-72" />
-          </div>
-    
-          <AvatarPreviewMenu
-            onSelectCategory={handleSelectCategory}
-            categoryValues={categoryValues as customizationOption[]}
-            userAvatar={selectedAvatarOptions}
-            selectedCategory={selectedCategory}
-            onEquip={handleEquip}
-            onPurchaseItem={handlePurchaseSingleItem}
-          />
-    
-    <div className="flex flex-col gap-1 mb-4">
-  <button
-    className="w-full rounded bg-blue-500 py-2 text-white text-xl hover:bg-blue-600 font-semibold"
-    onClick={handleSaveChanges}
-    disabled={!hasUnsavedChanges}
-  >
-    Save Changes
-  </button>
-  <button
-    className="w-full rounded bg-blue-500 py-2 text-white text-xl hover:bg-blue-600 font-semibold"
-    onClick={handleReset}
-    disabled={!hasUnsavedChanges}
-  >
-    Reset
-  </button>
-</div>
+      )}
 
-        </div>
-      </>
-    );
-    
+      <h1 className="mb-6 text-4xl font-bold">Customize Your Buddy</h1>
+
+      <div className="flex flex-col items-center justify-center">
+        <img src={userAvatar.toDataUri()} alt="User avatar" className="w-72" />
+      </div>
+
+      <AvatarPreviewMenu
+        onSelectCategory={handleSelectCategory}
+        categoryValues={categoryValues as customizationOption[]}
+        userAvatar={selectedAvatarOptions}
+        selectedCategory={selectedCategory}
+        onEquip={handleEquip}
+        onPurchaseItem={handlePurchaseSingleItem}
+      />
+
+      <div className="mb-4 flex flex-col gap-1">
+        <button
+          className="w-full rounded bg-blue-500 py-2 text-xl font-semibold text-white hover:bg-blue-600"
+          onClick={handleSaveChanges}
+          disabled={!hasUnsavedChanges}
+        >
+          Save Changes
+        </button>
+        <button
+          className="w-full rounded bg-blue-500 py-2 text-xl font-semibold text-white hover:bg-blue-600"
+          onClick={handleReset}
+          disabled={!hasUnsavedChanges}
+        >
+          Reset
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default CustomizeBuddy;

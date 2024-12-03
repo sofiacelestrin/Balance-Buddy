@@ -58,17 +58,6 @@ function EditTask() {
   };
 
   return (
-    <>
-    <header className="bg-blue-600 p-4 text-white">
-    <div className="flex items-center">
-      <img
-        src="/src/1logo.svg"
-        alt="Company Logo"
-        className="h-12 w-auto mr-4"
-      />
-      <div className="text-4xl font-bold">Balance Buddy</div>
-    </div>
-  </header>
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="mb-6 text-4xl font-bold">Edit Task</h1>
       <form
@@ -140,14 +129,13 @@ function EditTask() {
         </div>
         <button
           type="submit"
-          className="w-full rounded bg-blue-500 py-2 text-white text-xl hover:bg-blue-600 font-semibold"
+          className="w-full rounded bg-blue-500 py-2 text-xl font-semibold text-white hover:bg-blue-600"
         >
           Update Task
         </button>
       </form>
       {error && <p className="mt-4 text-red-500">{error}</p>}
     </div>
-    </>
   );
 }
 

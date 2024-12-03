@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { Result } from "@dicebear/core";
+import { useEffect, useState } from "react";
 import { supabase } from "../supabase/supabase";
-import { createAvatar, Result } from "@dicebear/core";
-import { avataaars } from "@dicebear/collection";
 import createAvatarFromOptions from "../util/createAvatar";
 
-function Buddy({ avatarOptions, isLoadingAvatar }) {
+function Buddy({ buddyName, avatarOptions, isLoadingAvatar }) {
   const [meters, setMeters] = useState({
     health: 0,
     self_actualization: 0,
@@ -115,7 +114,7 @@ function Buddy({ avatarOptions, isLoadingAvatar }) {
 
   return (
     <div className="mb-6 flex flex-col items-center rounded bg-white p-6 shadow-lg">
-      <h2 className="mb-4 text-2xl font-bold">Buddy</h2>
+      <h2 className="mb-4 text-2xl font-bold">{buddyName}</h2>
       {/* Avatar Image */}
       {!isLoadingAvatar && (
         <img

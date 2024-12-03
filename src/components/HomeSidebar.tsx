@@ -17,7 +17,7 @@ function HomeSidebar({
   return (
     <aside
       className={twMerge(
-        "fixed right-0 top-0 z-10 flex h-full flex-col items-center justify-between bg-white transition-all duration-300",
+        "fixed right-0 top-0 z-30 flex h-full flex-col items-center justify-between bg-white transition-all duration-300",
         className,
       )}
     >
@@ -27,13 +27,17 @@ function HomeSidebar({
       >
         ×
       </button>
-      <div className="flex flex-col whitespace-nowrap pt-20 text-xl font-bold space-y-4">
-        <Link to="/dashboard">Dashboard</Link>
-        <Link to="/customize-buddy">Customize Buddy</Link>
-        <Link to="/add-task">Add Task</Link>
-        <Link to="/journal">Journal</Link>
+      <div className="flex flex-col space-y-4 whitespace-nowrap pt-20 text-xl font-bold">
+        <Link to="/dashboard" onClick={onClose}>
+          Dashboard
+        </Link>
+        <Link to="/customize-buddy" onClick={onClose}>
+          Customize Buddy
+        </Link>
+        <Link to="/add-task" onClick={onClose}>
+          Add Task
+        </Link>
       </div>
-
 
       <button className="whitespace-nowrap text-red-500" onClick={signOutUser}>
         LOG OUT

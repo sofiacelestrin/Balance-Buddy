@@ -37,3 +37,19 @@ export async function getUserCoinBalance(userId: string) {
 
   return coinBalance.coin_balance;
 }
+
+export async function getUserInfo(userId: string){
+  
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", userId)
+    .single();
+
+    if(error){
+      throw new Error("Error fetching user information " + error.message)
+    }
+    
+    return data;
+
+}
