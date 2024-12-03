@@ -9,7 +9,6 @@ import { Link } from "react-router-dom";
 
 function Dashboard() {
   const { session } = useSession();
-
   const { isPending: isLoadingAvatar, data: avatarOptions } = useQuery({
     queryKey: ["user_avatar"],
     queryFn: async () => {
@@ -35,7 +34,7 @@ function Dashboard() {
     queryFn: async () => await getUserInfo(userId as string),
   });
   const buddyName = userInfoData?.avatar_name;
-
+  const coinBalance = userInfoData?.coin_balance;
   return (
     <>
       <div className="min-h-screen bg-gray-100 p-8">
@@ -56,6 +55,38 @@ function Dashboard() {
           {/* TodoList Component */}
           <div className="col-span-1">
             <TodoList />
+          </div>
+          {/* Messages */}
+          <div className="col-span-1 rounded bg-white p-6 shadow-lg">
+            <h2 className="mb-6 text-2xl font-bold text-gray-800">
+              Customize Your Buddy
+            </h2>
+            <p className="mb-4 text-gray-600">
+              Good job balancing! You have a total of
+            </p>
+
+            <div className="mb-6 flex items-center">
+              <img
+                src="/src/coin.svg"
+                alt="Coin Image"
+                className="mr-3 h-12 w-auto"
+              />
+              <div className="text-4xl font-bold text-gray-800">
+                {coinBalance} coins
+              </div>
+            </div>
+
+            <p className="mb-6 text-gray-600">
+              Use these coins to customize your buddy in the shop!
+            </p>
+
+            <div className="flex justify-center">
+              <Link to="/customize-buddy">
+                <button className="rounded bg-green-500 px-6 py-3 text-white hover:bg-green-600">
+                  Customize Your Buddy
+                </button>
+              </Link>
+            </div>
           </div>
         </main>
       </div>
