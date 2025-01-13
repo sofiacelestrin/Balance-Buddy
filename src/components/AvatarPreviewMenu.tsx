@@ -46,10 +46,9 @@ function AvatarPreviewMenu({
   selectedCategory,
   onPurchaseItem,
 }: AvatarPreviewProps) {
-  const parsedOptions: avatarOptions = {};
+  const parsedOptions = {} as avatarOptions;
   for (const customization of userAvatar) {
-    parsedOptions[customization?.category as string] =
-      customization?.option_value;
+    parsedOptions[customization?.category] = customization?.option_value;
   }
 
   //For each customization option (c_i) for the selected category, display an avatar preview with that customization option (c_i)
@@ -74,22 +73,21 @@ function AvatarPreviewMenu({
   const sortedAvatarOptions = avatarPreviews.sort((a, b) => a.id - b.id);
 
   return (
-<div className="w-full">
-  <div className="custom-scrollbar flex w-full gap-4 overflow-x-scroll text-xs">
-    {customizationCategoriesList.map(([category, uiLabel]) => (
-      <button
-        className={twMerge(
-          "bg-blue-500 p-2 shadow-xl hover:bg-blue-600 text-white text-lg font-semibold rounded",
-          category === selectedCategory && "bg-blue-600",
-        )}
-        key={category}
-        onClick={() => onSelectCategory(category)}
-      >
-        {uiLabel}
-      </button>
-    ))}
-  </div>
-
+    <div className="w-full">
+      <div className="custom-scrollbar flex w-full gap-4 overflow-x-scroll text-xs">
+        {customizationCategoriesList.map(([category, uiLabel]) => (
+          <button
+            className={twMerge(
+              "rounded bg-blue-500 p-2 text-lg font-semibold text-white shadow-xl hover:bg-blue-600",
+              category === selectedCategory && "bg-blue-600",
+            )}
+            key={category}
+            onClick={() => onSelectCategory(category)}
+          >
+            {uiLabel}
+          </button>
+        ))}
+      </div>
 
       <ul className="flex flex-wrap justify-center gap-2">
         {!isNonCustomizable ? (
