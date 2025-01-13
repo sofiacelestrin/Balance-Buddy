@@ -27,7 +27,7 @@ function NavigationBar({ onSidebarToggle }: NavigationBarProps) {
           {/* Left Section: Logo and Title */}
           <div className="flex items-center">
             <img
-              src="/src/1logo.svg"
+              src="/1logo.svg"
               alt="Company Logo"
               className="mr-4 h-12 w-auto"
             />
@@ -38,7 +38,7 @@ function NavigationBar({ onSidebarToggle }: NavigationBarProps) {
           {session && (
             <div className="flex items-center">
               <img
-                src="/src/coin.svg"
+                src="/coin.svg"
                 alt="Coin Image"
                 className="mr-2 h-12 w-auto"
               />

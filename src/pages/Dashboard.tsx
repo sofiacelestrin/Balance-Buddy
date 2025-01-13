@@ -67,7 +67,7 @@ function Dashboard() {
 
             <div className="mb-6 flex items-center">
               <img
-                src="/src/coin.svg"
+                src="/coin.svg"
                 alt="Coin Image"
                 className="mr-3 h-12 w-auto"
               />

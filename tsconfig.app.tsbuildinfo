@@ -1,1 +1,35 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/applayout.tsx","./src/components/avatarcard.tsx","./src/components/avatarpreviewmenu.tsx","./src/components/homesidebar.tsx","./src/components/navigationbar.tsx","./src/components/purchaseconfirmationmodal.tsx","./src/components/icons/hamburgerbars.tsx","./src/contexts/sessioncontext.tsx","./src/lib/constants.ts","./src/lib/types.ts","./src/pages/addtask.tsx","./src/pages/buddy.tsx","./src/pages/charactercreation.tsx","./src/pages/customizebuddy.tsx","./src/pages/dashboard.tsx","./src/pages/edittask.tsx","./src/pages/journal.tsx","./src/pages/login.tsx","./src/pages/registration.tsx","./src/pages/todolist.tsx","./src/supabase/customizationoptionsservice.ts","./src/supabase/supabase.ts","./src/supabase/supabasetypes.ts","./src/supabase/usercustomizationownershipservice.ts","./src/supabase/userservice.ts","./src/util/createavatar.ts"],"errors":true,"version":"5.6.3"}
+{
+  "root": [
+    "./src/app.tsx",
+    "./src/main.tsx",
+    "./src/vite-env.d.ts",
+    "./src/components/applayout.tsx",
+    "./src/components/avatarcard.tsx",
+    "./src/components/avatarpreviewmenu.tsx",
+    "./src/components/homesidebar.tsx",
+    "./src/components/navigationbar.tsx",
+    "./src/components/purchaseconfirmationmodal.tsx",
+    "./src/components/icons/hamburgerbars.tsx",
+    "./src/contexts/sessioncontext.tsx",
+    "./src/lib/constants.ts",
+    "./src/lib/types.ts",
+    "./src/pages/addtask.tsx",
+    "./src/pages/buddy.tsx",
+    "./src/pages/charactercreation.tsx",
+    "./src/pages/customizebuddy.tsx",
+    "./src/pages/dashboard.tsx",
+    "./src/pages/edittask.tsx",
+    "./src/pages/journal.tsx",
+    "./src/pages/login.tsx",
+    "./src/pages/registration.tsx",
+    "./src/pages/todolist.tsx",
+    "./src/supabase/customizationoptionsservice.ts",
+    "./src/supabase/supabase.ts",
+    "./src/supabase/supabasetypes.ts",
+    "./src/supabase/usercustomizationownershipservice.ts",
+    "./src/supabase/userservice.ts",
+    "./src/util/createavatar.ts"
+  ],
+  "errors": true,
+  "version": "5.6.3"
+}
