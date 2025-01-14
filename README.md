@@ -1,50 +1,75 @@
-# React + TypeScript + Vite
+# Balance Buddy
+Balance Buddy is a gamified task management system designed to help users balance productivity and self-care. The app encourages users to maintain equilibrium across different areas of their lives, inspired by Maslow's Hierarchy of Needs. Users can complete real-life tasks, earn coins, and customize their virtual avatar, which reflects their well-being through dynamic wellness meters.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Description
+Balance Buddy addresses the shortcomings of existing task management apps by promoting balance across key areas of life: health, happiness, social connection, and self-actualization. Users are incentivized to complete tasks in these categories to maintain their avatar's wellness meters, which deplete daily based on an algorithm. The app is built using modern web technologies and offers an engaging user experience with colorful interfaces and interactive features.
 
-Currently, two official plugins are available:
+## Learning and Concepts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Technical Concepts
+- React and Frontend Development: Built a responsive, dynamic interface using React.js and Tailwind CSS, focusing on usability and visual appeal.
+- Supabase Backend: Simplified backend implementation with Supabase, enabling database management, user authentication, and API integration.
+- Gamification Algorithms: Designed algorithms to calculate task rewards and wellness meter depletion, emphasizing balance and user engagement.
+### Development Methodologies
+- Agile Development: Utilized Agile principles to coordinate tasks among team members, track progress, and deliver incremental updates.
+- Team Collaboration: Adopted role specialization, allowing team members to focus on their strengths (frontend or backend) while maintaining cohesive project development.
+- Version Control: Managed codebase using Git, ensuring smooth collaboration and integration.
 
-## Expanding the ESLint configuration
+## Technologies Used
+- Frontend: React.js, Tailwind CSS
+- Backend: Supabase
+- Programming Languages: JavaScript, TypeScript
+- Tools: Git, Vercel (deployment)
+- Design Standards: Follows ECMAScript 2020 and React 18 specifications
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Contributors
+- William Garcia: Frontend Development and UI/UX Design
+- Sofia Celestrin: Frontend Development and User Experience
+- Lindsey Hannah: Backend Development and Data Modeling
+- Alex Hu: Algorithm Design and Database Management
 
-- Configure the top-level `parserOptions` property like this:
+## Running the Project Locally
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+To run this project on your local machine, follow these steps:
+
+**Prerequisites**: Make sure you have the following installed on your machine.
+
+- Node.js
+- npm
+
+## Steps
+
+1. Clone the Repository
+
+```
+git clone https://github.com/sofiacelestrin/Balance-Buddy
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+2. Enter folder:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
 ```
+cd Balance-Buddy.git
+```
+
+3. Install Dependencies:
+
+```
+npm install
+```
+
+4. Run the Development Server
+
+```
+npm run dev
+```
+
+5. Open in Browser
+
+Open your browser and navigate to
+http://localhost:5173 (or another port specified in the console)
+
+6. Explore the App:
+
+The application should now be running locally 😎.
+
+If you simply want to use this app without diving into the code, you can access a live instance of the application hosted on vercel. The link is provided [here](https://balance-buddy-iota.vercel.app).
